@@ -1,0 +1,227 @@
+VMOS Cloud API
+English
+
+Product Introduction
+Product Type
+Product Billing
+OpenAPI
+User Guide
+V2 Simplified Signature
+API Documentation
+LLMs.txt (AI Quick Reference)
+OpenAPI Spec (for AI & tools)
+Error Code
+Instance Property List
+Modem Properties List
+Persistent Call
+Non-Persistent Call
+Property List
+System Properties List
+Persistent Call
+Non-Persistent Call
+Property List
+General Properties
+Other Properties
+Allowed Properties with Specific Prefixes
+Blacklisted Properties (Non-modifiable)
+Whitelisted Properties (Modifiable)
+Simulated SIM
+Effective Signal Strength Parameters in Different Modes
+Signal strength value range reference
+Setting Properties
+Attribute List
+OAID Properties
+Attribute List
+Android device modification attribute list
+Callback Task Business Type Codes
+Changelog
+Mobile Root Certificate Format Specification
+Android SDK
+Web H5 SDK
+Windows PC SDK
+Edge-Cloud Communication Development
+Similar to XP, LSP Hook framework 
+
+Related agreements
+Modem Properties List
+Configurable properties in the Android system:
+
+Non-persistent storage: Can be set via the modemPropertiesList parameter in the "Update Instance Properties (updatePadProperties)" interface (non-persistent, takes effect immediately, but lost after instance restart).
+Persistent storage: Can be set via the modemPersistPropertiesList parameter in the "Update Instance Properties (updatePadProperties)" interface (persistent, takes effect after instance restart).
+Persistent Call
+Request Example:
+
+
+"modemPersistPropertiesList":[{
+  "propertiesName":"IMEI",
+  "propertiesValue":"897654321"
+},
+  {
+    "propertiesName":"ICCID",
+    "propertiesValue":"00998877"
+  }]
+Non-Persistent Call
+Request Example:
+
+
+"modemPropertiesList":[{
+  "propertiesName":"IMEI",
+  "propertiesValue":"897654321"
+},
+  {
+    "propertiesName":"ICCID",
+    "propertiesValue":"00998877"
+  }]
+Property List
+Property（key）	Property Value（value）	Description
+IMEI	897654321	
+ICCID	00998877	
+IMSI	4600112345	
+MCCMNC	461,01	
+OpName	China Mobile	
+PhoneNum	861380013800	
+System Properties List
+Configurable properties in the Android system:
+
+Non-persistent storage: Can be set via the systemPropertiesList parameter in the "Update Instance Properties (updatePadProperties)" interface (non-persistent, takes effect immediately, but lost after instance restart).
+Persistent storage: Can be set via the systemPersistPropertiesList parameter in the "Update Instance Properties (updatePadProperties)" interface (persistent, takes effect after instance restart).
+Persistent Call
+Request Example:
+
+
+"systemPersistPropertiesList":[{
+  "propertiesName":"ro.product.manufacturer",
+  "propertiesValue":"XIAOMI"
+},
+  {
+    "propertiesName":"ro.product.brand",
+    "propertiesValue":"XIAOMI"
+  }]
+Non-Persistent Call
+
+Request Example:
+"systemPropertiesList":[{
+  "propertiesName":"ro.product.manufacturer",
+  "propertiesValue":"XIAOMI"
+},
+  {
+    "propertiesName":"ro.product.brand",
+    "propertiesValue":"XIAOMI"
+  }]
+Property List
+General Properties
+Property (key)	Property Value (value)	Description
+ro.product.manufacturer	e.g., HW	Manufacturer
+ro.product.brand	e.g., HW	Brand
+ro.product.model	e.g., LYA_AL00	Model
+ro.build.id	0	Build tag
+ro.build.display.id	0	Build version number
+ro.product.name	e.g., LYA_AL00	Product name
+ro.product.device	e.g., HWLYA	Device information
+ro.product.board	e.g., LYA	Board name
+ro.build.tags	e.g., dev-keys/release-keys	
+ro.build.fingerprint	0	System fingerprint
+ro.build.date.utc	0	Firmware compilation timestamp
+ro.build.user	0	Firmware compilation user
+ro.build.host	0	Firmware compilation host
+ro.build.description	0	Compilation description
+ro.build.version.incremental	0	Internal version number
+ro.build.version.codename	0	codename
+Other Properties
+Allowed Properties with Specific Prefixes
+"ro.build.", "ro.product.", "ro.odm.", "ro.vendor.", "ro.system_ext.", "ro.system.", "ro.com.", "ro.config."
+
+However, not all properties under these prefixes are open. Some restricted properties are maintained in the blacklist below. Additionally, some properties without these prefixes are allowed, which are maintained in the whitelist.
+
+Blacklisted Properties (Non-modifiable)
+"ro.build.type", "ro.build.vername", "ro.build.version.release", "ro.build.version.sdk", "ro.build.version.name", "ro.product.cpu.abi", "ro.product.cpu.abilist", "ro.product.cpu.abilist32", "ro.product.cpu.abilist64", "ro.odm.build.type", "ro.odm.build.version.release", "ro.odm.build.version.sdk", "ro.odm.product.cpu.abilist", "ro.odm.product.cpu.abilist32", "ro.odm.product.cpu.abilist64", "ro.vendor.build.type", "ro.vendor.build.version.release", "ro.vendor.build.version.sdk", "ro.vendor.product.cpu.abilist", "ro.vendor.product.cpu.abilist32", "ro.vendor.product.cpu.abilist64", "ro.system.build.type", "ro.system.build.version.release", "ro.system.build.version.sdk"
+
+Whitelisted Properties (Modifiable)
+"ro.board.platform", "ro.bootimage.build.fingerprint", "ro.baseband", "ro.boot.wificountrycode", "ro.bootimage.build.date", "ro.bootimage.build.date.utc", "ro.gfx.driver.0", "ro.revision", "ro.ril.svdo", "ro.ril.svlte1x", "ro.serialno",
+
+Simulated SIM
+Property (key)	Property Value (value)	Description
+aic.sim.state	Example: 5	0;1: No SIM card; 2: SIM_STATE_NETWORK_LOCKED; 3: SIM card PIN locked; 4: SIM card PUK locked; 5: SIM card normal
+aic.operator.shortname	Example: CMCC	Operator short name
+aic.operator.numeric	Example: 46001	Network operator ID (i.e., MCCMNC)
+aic.spn	Example: China Mobile	SIM card operator name
+aic.iccid	Example: 89860002191807255576	SIM card number
+aic.imsi	Example: 460074008004488	Prefix is the SIM card operator number: MCC (3 digits) + MNC (2 or 3 digits)
+aic.phonenum	Example: 18629398873	Phone number
+aic.net.country	Example: CHINA	Network country
+aic.sim.country	Example: CHINA	SIM card country
+aic.signal.strength	Example: {"cdmaDbm"=0,"cdmaEcio"=1,"evdoDbm"=2,"evdoEcio"=3,"evdoSnr"=4,"rssi"=-51,"asulevel"=30,"ber"=0,"ta"=0,"rscp"=-51,"ecNo"=10,"rsrp"=1,"rsrq"=43,"rssnr"=300,"cqi"=15,"csiRsrp"=-44,"csiRsrq"=-3,"csiSinr"=23,"csiCqiTableIndex"=0,"ssRsrp"=-44,"ssRsrq"=-3,"ssSinr"=40,"parametersUseForLevel"=22}	Signal strength
+aic.deviceid	Example: 370483496	Electronic serial number
+aic.cellinfo	Example: {"lac"=4049,"cid"=1463,"sid"=149,"arfcn"=arfcn,"bsic"=133,"alphal"="","alphas"="CMCC","psc"=11,"ci"=11,"psc"=11,"pci"=22,"tac"=33, "earfcn"=44,"bandwidth"=144}	Effective base station fields in different modes: GSM: int lac, int cid, int arfcn, int bsic, String mccStr, String mncStr, String alphal, String alphas CDMA: int lac, int cid, int psc, int uarfcn, String mccStr, String mncStr, String alphal, String alphas LTE: int mcc, int mnc, int ci, int pci, int tac, String mccStr, String mncStr, String alphal, String alphas NR: int csiRsrp, int csiRsrq, int csiSinr, int ssRsrp, int ssRsrq, int ssSinr # The fields mccStr, mncStr, mcc, mnc will be obtained from modem/aic.operator.numeric, no need to pass them here
+aic.net.type	Example: 13	Data network type: gsm/lte/cdma (China Telecom), default is lte ## 0-20; NETWORK_TYPE_CDMA=4; NETWORK_TYPE_LTE=13; NETWORK_TYPE_GSM=16; NETWORK_TYPE_NR=20 # 5G
+aic.radio.type	Example: 13	Voice network type: gsm/lte/cdma (China Telecom), default is lte (VoLTE); NETWORK_TYPE_CDMA=4; NETWORK_TYPE_LTE=13; NETWORK_TYPE_GSM=16; NETWORK_TYPE_NR=20 # 5G
+aic.gid1	Example: FF	GroupLevel1, its specific meaning depends on the operator’s definition and may represent different services or specific functions.
+aic.alphatag	Example: abcdefg	A string stored on the SIM card, usually representing the name or brand of the mobile network operator.
+aic.nai	Example: abcdefg	NAI is a string used to identify a device's identity in a mobile network.
+Effective Signal Strength Parameters in Different Modes
+CDMA:int cdmaDbm, int cdmaEcio, int evdoDbm, int evdoEcio, int evdoSnr GSM: int rssi, int ber, int ta WCDMA:int rssi, int ber, int rscp, int ecno TDSCDMA：int rssi, int ber, int rscp LTE:int rssi, int rsrp, int rsrq, int rssnr, int cqi, int timingAdvance NR: int csiRsrp, int csiRsrq, int csiSinr, int ssRsrp, int ssRsrq, int ssSinr
+
+Signal strength value range reference
+//cdma public int cdmaDbm; // This value is the RSSI value public int cdmaEcio; // This value is the Ec/Io public int evdoDbm; // This value is the EVDO RSSI value public int evdoEcio; // This value is the EVDO Ec/Io public int evdoSnr; // Valid values are 0-8. 8 is the highest signal to noise ratio //public int level;
+
+//gsm public int rssi; // in dBm [-113, -51] or UNAVAILABLE public int ber; // bitErrorRate; // bit error rate (0-7, 99) TS 27.007 8.5 or UNAVAILABLE public int ta; // timingAdvance; // bit error rate (0-7, 99) TS 27.007 8.5 or UNAVAILABLE
+
+//wcdma public int rscp; // in dBm [-120, -24] public int ecno; // range -24, 1, CellInfo.UNAVAILABLE if unknown
+
+//lte //public int rssi; // in dBm [-113,-51], UNKNOWN public int rsrp; // in dBm [-140,-43], UNKNOWN public int rsrq; // in dB [-20,-3], UNKNOWN public int rssnr; // in 10*dB [-200, +300], UNKNOWN public int cqi; // [0, 15], UNKNOWN //public int ta; // [0, 1282], UNKNOWN
+
+//Nr public int csiRsrp; // [-140, -44], UNKNOWN public int csiRsrq; // [-20, -3], UNKNOWN public int csiSinr; // [-23, 23], UNKNOWN
+
+public int csiCqiTableIndex; public List mCsiCqiReport; public int ssRsrp; // [-140, -44], UNKNOWN public int ssRsrq; // [-20, -3], UNKNOWN public int ssSinr; // [-23, 40], UNKNOWN
+
+public int mParametersUseForLevel;
+
+Setting Properties
+Request Example:
+
+
+"settingPropertiesList":[{
+  "propertiesName":"ssaid/com.demo1",
+  "propertiesValue":"2345243531"
+},
+  {
+    "propertiesName":"ssaid/com.demo2",
+    "propertiesValue":"123456789"
+  },
+  {
+    "propertiesName":"language",
+    "propertiesValue":"zh-CN"
+  }]
+Attribute List
+Attribute (key)	Attribute Value (value)	Attribute Description
+ssaid/com.cheersucloud.cimi.sample	897654321	Android ID
+bt/mac	1A:75:FF:88:2A:06	Bluetooth MAC
+language	zh-CN	System Language
+timezone	Asia/Shanghai	System Time Zone
+systemvolume	10	Fixed media volume, range: 0-15
+OAID Properties
+Request Example:
+
+
+"oaidPropertiesList":[{
+  "propertiesName":"UDID",
+  "propertiesValue":"111111111"
+},
+  {
+    "propertiesName":"OAID",
+    "propertiesValue":"123456789"
+  },
+  {
+    "propertiesName":"language",
+    "propertiesValue":"zh-CN"
+  }]
+Attribute List
+Attribute (key)	Attribute Value (value)	Attribute Description
+UDID	11111111	The unique identifier for iOS devices. Each iOS device has a unique UDID. However, since 2018, Apple has prohibited developers from accessing the UDID, replacing it with the Vendor ID (Vendor Identifier).
+OAID	22222222	An anonymous identifier for Android devices, developed and promoted by the China Mobile Internet Industry Alliance (CCIA). It aims to replace the device ID (IMEI) and Android ID (the unique identifier of the Android system) to enable precise cross-app and cross-platform ad targeting while protecting user privacy.
+VAID	33333333	A manufacturer advertising identifier for Android devices, provided by device manufacturers. VAID can be used for precise cross-app and cross-platform ad targeting. Unlike OAID, VAID is not an anonymous identifier.
+AAID	44444444	A unique identifier provided by the Google Play Services framework for precise cross-app and cross-platform ad targeting. It is also designed to protect user privacy. Users can reset their AAID at any time and prevent apps from accessing it.
+ Prev
+Error Code
+Next 
+Android device modification attribute list

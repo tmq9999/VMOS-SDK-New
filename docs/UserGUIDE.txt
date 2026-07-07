@@ -1,0 +1,1710 @@
+VMOS Cloud API
+English
+
+Product Introduction
+Product Type
+Product Billing
+OpenAPI
+User Guide
+Overview
+Get Account (AK/SK)
+Common Request Parameters
+V2 Simplified Signature (Recommended for New Customers)
+Authorization Signature Mechanism
+Manual Signing
+Construct Canonical Request String (CanonicalRequest)
+Construct String to Sign (StringToSign)
+SigningKey Example
+Signature Example
+Signature Generation Utility Class Example (Java)
+Interface Call Demo Example (Java)
+Interface Call Demo Example (Easy Language)
+Interface Call Demo Example (Python)
+Signature Generation Utility Class Example (Node)
+Interface Call Demo Example (Node)
+Signature Generation Utility Class Example (Go)
+Interface Call Demo Example (Go)
+Signature Generation Utility Class Example (PHP)
+Interface Call Demo Example (PHP)
+Signature Generation Utility Class Example (.NET)
+Interface Call Demo Example (.NET)
+Data Encryption and Decryption Examples
+Java AES GCM Decryption
+V2 Simplified Signature
+API Documentation
+LLMs.txt (AI Quick Reference)
+OpenAPI Spec (for AI & tools)
+Error Code
+Instance Property List
+Android device modification attribute list
+Callback Task Business Type Codes
+Changelog
+Mobile Root Certificate Format Specification
+Android SDK
+Web H5 SDK
+Windows PC SDK
+Edge-Cloud Communication Development
+Similar to XP, LSP Hook framework 
+
+Related agreements
+Overview
+The VMOSCloud Server OpenAPI provides a set of RESTful APIs for developers to manage and operate cloud phone service resources. Through these APIs, you can implement functions such as creating, managing, and monitoring cloud phone instances, thereby better integrating and extending your applications.
+
+Get Account (AK/SK)
+Prerequisites
+
+Before using the API, you need to obtain the Access Key ID and Secret Access Key for API request authentication.
+
+Steps:
+
+Log in to the VMOSCloud Platform
+Navigate to the menu: Developer -> API
+Copy the corresponding key information:
+AccessKeyID (referred to as AK)
+SecretAccessKey (referred to as SK)
+Common Request Parameters
+For every interface request, the Headers must contain the following four parameters for authentication.
+
+Parameter Name	Type	Required	Description	Example Value
+x-date	string	Yes	Timestamp of the request	Use UTC time, precise to seconds
+x-host	string	Yes	Interface access domain name	openapi.armcloud.net
+Content-Type	string	Yes	MIME type of the resource	application/json
+authorization	string	Yes	Signature included in the sent request	See explanation below
+Authorization Format Example:
+
+
+HMAC-SHA256 Credential={AccessKey}, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature={Signature}
+
+V2 Simplified Signature (Recommended for New Customers)
+V2 is the simplified signing scheme: 3 headers + 1 line of SHA-256, no derived key, no JSON re-ordering.
+
+Full details on a dedicated page
+
+Full specification, error codes and ready-to-run examples in curl / Java / Python / Node / Go / PHP / .NET are documented on:
+
+V2 Simplified Signature →
+
+Existing V4 customers do not need to migrate — both schemes run in parallel and share the same AK/SK.
+
+Authorization Signature Mechanism
+For every HTTPS protocol request, the identity of the requester is verified based on the signature information in the access. This is specifically implemented through encryption verification using the AccessKey ID and AccessKey Secret (AK/SK) corresponding to the user account.
+
+Manual Signing
+Note Signing requires a series of processing steps on the request parameters, including sorting, splicing, encryption, etc. This method offers greater flexibility and customizability, suitable for developers who have a deep understanding of signature algorithms. However, manual signing requires developers to write additional code to implement the signing process, which may increase development difficulty and the possibility of errors. Therefore, we still recommend that you use the SDK to call the API to avoid writing signature code yourself as much as possible. If you need to understand the principle and specific process of signature calculation, please refer to the following documentation.
+
+The manual signing mechanism requires the requester to calculate the hash value of the request parameters, encrypt it, and send it to the server along with the API request. The server will use the same mechanism to calculate the signature of the received request and compare it with the signature sent by the requester. If the signatures do not match, the request will be rejected.
+
+Get the account's Access Key ID and Secret Access Key (AK/SK) for API request authentication. Please contact your technical point of contact to obtain them.
+
+Construct Canonical Request String (CanonicalRequest)
+
+String canonicalStringBuilder=
+"host:"+*${host}*+"\n"+
+"x-date:"+*${xDate}*+"\n"+
+"content-type:"+*${contentType}*+"\n"+
+"signedHeaders:"+*${signedHeaders}*+"\n"+
+"x-content-sha256:"+*${xContentSha256}*；
+
+Field	Explanation
+host	Request service domain name. Fixed as: api.vmoscloud.com
+x-date	Refers to the request UTC time, which is the value of X-Date in the request header common parameters. Use the format following the ISO 8601 standard: YYYYMMDD'T'HHMMSS'Z', for example: 20201103T104027Z
+content-type	Media type of the request or response body (application/json)
+signedHeaders	Headers participating in the signature. These correspond one-to-one with the Headers included in CanonicalHeaders. The purpose is to indicate which Headers participate in the signature calculation, thereby ignoring extra Headers added by proxies. If host and x-date exist in the Headers, they must participate.
+
+Pseudo-code follows:
+
+
+SignedHeaders=Lowercase(HeaderName0)+';'+Lowercase(HeaderName1)+";"+...+Lowercase(HeaderNameN)
+
+
+Example:
+
+
+SignedHeaders=content-type;host;x-content-sha256;x-date | | x-content-sha256 | hashSHA256(body) Note: body must have spaces removed before calculating hashSHA256 |
+
+Construct String to Sign (StringToSign)
+The signature string mainly contains metadata information of the request and the canonical request, composed of the signature algorithm, request date, credential scope, and the hash value of the canonical request connected together.
+
+Construct the string to sign, pseudo-code follows:
+
+
+StringToSign=
+Algorithm+'\n'+
+xDate+'\n'+
+CredentialScope+'\n'+
+hashSHA256(canonicalStringBuilder.getByte())
+
+Field	Explanation
+Algorithm	Refers to the signature algorithm. Currently, only the HMAC-SHA256 signature algorithm is supported.
+x-date	Refers to the request UTC time, which is the value of X-Date in the request header common parameters. Use the format following the ISO 8601 standard: YYYYMMDD'T'HHMMSS'Z', for example: 20201103T104027Z
+CredentialScope	Refers to the credential scope, format: ${YYYYMMDD}/${service}/request, where ${YYYYMMDD} takes the date from X-Date, ${service} is fixed as armcloud-paas, and request is a fixed value.
+
+Refer to "Calculate CredentialScope" below. | | CanonicalRequest | Refers to the result of Construct Canonical Request String. |
+
+Calculate CredentialScope
+
+String credentialScope = shortXDate+"/"+service+"/request";
+shortXDate: Short request time (x-date truncated to the first 8 digits, example: 20201103)
+service: Service name (fixed as armcloud-paas)
+"/request": Fixed value
+
+SigningKey Example
+Derived signing key generated by HMAC hash operation sequence.
+
+
+byte[]Signingkey=hmacSHA256(hmacSHA256(hmacSHA256(sk.getBytes(),shortXDate),service),”request”);
+
+Field	Explanation
+sk	Customer Secret Key
+shortXDate	Short request date
+Service	Service name, temporarily fixed as armcloud-paas
+Signature Example
+
+signature=HexEncode(hmacSHA256(Signingkey,StringToSign))
+
+Signature Generation Utility Class Example (Java)
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+
+public class PaasSignUtils {
+
+public static final String service = "armcloud-paas";
+
+public static String signature(String contentType, String signedHeaders, String host, String xDate, String sk, byte[] body) throws Exception {
+
+if (body == null) {
+body = new byte[0];
+}
+String xContentSha256 = hashSHA256(body);
+String shortXDate = xDate.substring(0, 8);
+
+String canonicalStringBuilder = "host:" + host + "\n" + "x-date:" + xDate + "\n" + "content-type:" + contentType + "\n" + "signedHeaders:" + signedHeaders + "\n" + "x-content-sha256:" + xContentSha256;
+
+String hashcanonicalString = hashSHA256(canonicalStringBuilder.getBytes());
+
+String credentialScope = shortXDate + "/" + service + "/request";
+String signString = "HMAC-SHA256" + "\n" + xDate + "\n" + credentialScope + "\n" + hashcanonicalString;
+
+byte[] signKey = genSigningSecretKeyV4(sk, shortXDate, service);
+return bytesToHex(hmacSHA256(signKey, signString));
+}
+
+public static String hashSHA256(byte[] content) throws Exception {
+try {
+MessageDigest md = MessageDigest.getInstance("SHA-256");
+return bytesToHex(md.digest(content));
+} catch (Exception e) {
+throw new Exception("Unable to compute hash while signing request: " + e.getMessage(), e);
+}
+}
+
+public static byte[] hmacSHA256(byte[] key, String content) throws Exception {
+try {
+Mac mac = Mac.getInstance("HmacSHA256");
+mac.init(new SecretKeySpec(key, "HmacSHA256"));
+return mac.doFinal(content.getBytes());
+} catch (Exception e) {
+throw new Exception("Unable to calculate a request signature: " + e.getMessage(), e);
+}
+}
+
+private static byte[] genSigningSecretKeyV4(String secretKey, String date, String service) throws Exception {
+byte[] kDate = hmacSHA256((secretKey).getBytes(), date);
+byte[] kService = hmacSHA256(kDate, service);
+return hmacSHA256(kService, "request");
+}
+
+public static String bytesToHex(byte[] bytes) {
+if (bytes == null || bytes.length == 0) {
+return "";
+}
+final StringBuilder result = new StringBuilder();
+for (byte b : bytes) {
+result.append(String.format("%02x", b));
+}
+return result.toString();
+}
+
+}
+
+Interface Call Demo Example (Java)
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.parser.Feature;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.springframework.stereotype.Component;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+@Slf4j
+@Component
+public class ApiRequestUtils {
+private static final String API_HOST = "api.vmoscloud.com";
+private static final String CONTENT_TYPE = "application/json;charset=UTF-8";
+private static final String ACCESS_KEY = "Access Key ID";
+private static final String SECRET_ACCESS_KEY = "Secret Access Key";
+
+/**
+* Test Call
+*/
+public static void main(String[] args) {
+//POST Request
+JSONObject params = new JSONObject();
+params.put("taskIds", new int[]{4224});
+String url = "https://api.vmoscloud.com/vcpcloud/api/padApi/padTaskDetail";
+String result = sendPostRequest(url, params);
+System.out.println(result);
+
+//GET Request
+//        String url = "https://api.vmoscloud.com/vcpcloud/api/padApi/stsToken";
+//        String result = sendGetRequest(url, null);
+}
+
+public static String sendGetRequest(String url, JSONObject params) {
+String xDate = DateToUTC(LocalDateTime.now());
+StringBuilder urlWithParams = new StringBuilder(url);
+
+// Build URL parameters
+if (params != null && !params.isEmpty()) {
+urlWithParams.append("?");
+params.forEach((key, value) ->
+urlWithParams.append(key).append("=").append(value).append("&")
+);
+// Remove the last "&"
+urlWithParams.setLength(urlWithParams.length() - 1);
+}
+
+HttpGet httpGet = new HttpGet(urlWithParams.toString());
+
+// Set common headers
+httpGet.setHeader("content-type", CONTENT_TYPE);
+httpGet.setHeader("x-host", API_HOST);
+httpGet.setHeader("x-date", xDate);
+
+// Generate Authorization header
+String authorizationHeader = getAuthorizationHeader(xDate, params == null ? null : params.toJSONString(), SECRET_ACCESS_KEY);
+httpGet.setHeader("authorization", authorizationHeader);
+
+// Execute request
+try (CloseableHttpClient httpClient = HttpClients.createDefault();
+CloseableHttpResponse response = httpClient.execute(httpGet)) {
+
+HttpEntity responseEntity = response.getEntity();
+return EntityUtils.toString(responseEntity, StandardCharsets.UTF_8);
+
+} catch (Exception e) {
+throw new RuntimeException("Request failed", e);
+}
+}
+
+
+/**
+* Common request method
+*/
+public static String sendPostRequest(String url, JSONObject params) {
+String xDate = DateToUTC(LocalDateTime.now());
+HttpPost httpPost = new HttpPost(url);
+
+// Set common headers
+httpPost.setHeader("content-type", CONTENT_TYPE);
+httpPost.setHeader("x-host", API_HOST);
+httpPost.setHeader("x-date", xDate);
+
+// Generate Authorization header
+String authorizationHeader = getAuthorizationHeader(xDate, params.toJSONString(), SECRET_ACCESS_KEY);
+httpPost.setHeader("authorization", authorizationHeader);
+
+// Set request body
+StringEntity entity = new StringEntity(params.toJSONString(), StandardCharsets.UTF_8);
+httpPost.setEntity(entity);
+
+// Execute request
+try (CloseableHttpClient httpClient = HttpClients.createDefault();
+CloseableHttpResponse response = httpClient.execute(httpPost)) {
+
+HttpEntity responseEntity = response.getEntity();
+return EntityUtils.toString(responseEntity, StandardCharsets.UTF_8);
+
+} catch (Exception e) {
+throw new RuntimeException("Request failed", e);
+}
+}
+
+
+/**
+* Use UTC time, precise to seconds
+*
+* @param dateTime LocalDateTime
+* @return String
+*/
+public static String DateToUTC(LocalDateTime dateTime) {
+// Define date time format
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuuMMdd'T'HHmmss'Z'");
+return dateTime.format(formatter);
+}
+
+
+/**
+* Get Signature
+*/
+private static String getSign(String xDate, String sk, String requestBody) throws Exception {
+String body = requestBody == null ? null : JSONObject.parseObject(requestBody, Feature.OrderedField).toJSONString();
+return PaasSignUtils.signature(CONTENT_TYPE, "content-type;host;x-content-sha256;x-date", API_HOST, xDate, sk, body == null ? null : body.getBytes(StandardCharsets.UTF_8));
+}
+
+/**
+* Get Authorization Header
+*/
+private static String getAuthorizationHeader(String currentTimestamp, String body, String sk) {
+try {
+String sign = getSign(currentTimestamp, sk, body);
+return String.format("HMAC-SHA256 Credential=%s, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature=%s", ACCESS_KEY, sign);
+} catch (Exception e) {
+throw new RuntimeException("Failed to generate signature", e);
+}
+}
+
+}
+
+Interface Call Demo Example (Easy Language)
+
+.版本 2
+.支持库 spec
+.支持库 e2ee
+
+.程序集 程序集1
+
+.子程序 _启动子程序, 整数型
+
+调用子程序 (&查询实例属性, , , )
+返回 (0)
+
+.子程序 查询实例属性
+.局部变量 时间型, 日期时间型
+.局部变量 存取, 存取键值表
+.局部变量 请求存取, 存取键值表
+.局部变量 局_网址, 文本型
+.局部变量 协议头, 类_POST数据类
+.局部变量 局_结果, 字节集
+.局部变量 局_返回, 文本型
+.局部变量 局_数据, 文本型
+.局部变量 加密数据, 文本型
+.局部变量 时间值, 文本型
+.局部变量 AcceccKey, 文本型
+.局部变量 SecretAccessKey, 文本型
+.局部变量 SHA256, 文本型
+.局部变量 请求提交数据, 文本型
+
+时间型 ＝ 时间_取北京时间 ()
+调试输出 (到文本 (时间型))
+时间值 ＝ 到文本 (取年份 (时间型)) ＋ 格式化数字 (取月份 (时间型)) ＋ 格式化数字 (取日 (时间型)) ＋ “T” ＋ 格式化数字 (取小时 (时间型)) ＋ 格式化数字 (取分钟 (时间型)) ＋ 格式化数字 (取秒 (时间型)) ＋ “Z”  ' 【注意：此处我添加了 格式化数字，确保时间值是两位数】
+AcceccKey ＝ “”
+SecretAccessKey ＝ “”
+请求存取.置值 (“padCode”, “账号下的设备号”)
+请求提交数据 ＝ 请求存取.到JSON (假, , , , )
+
+局_网址 ＝ “https://api.vmoscloud.com/vcpcloud/api/padApi/generateSignature”
+存取.置值 (“sk”, SecretAccessKey)
+存取.置值 (“xdate”, 时间值)
+存取.置值 (“body”, 请求提交数据)
+局_数据 ＝ 存取.到JSON (假, , , , )
+调试输出 (“提交需加密参数”, 局_数据)
+协议头.添加 (“host”, “api.vmoscloud.com”)
+协议头.添加 (“Content-Type”, “application/json”)
+局_结果 ＝ 网页_访问_对象 (局_网址, 1, 局_数据, , , 协议头.获取协议头数据 (), , , , , , , , , , , , , 假)
+局_返回 ＝ 编码_Utf8到Ansi (局_结果)
+调试输出 (“返回加密结果”, 局_返回)
+存取.从JSON载入 (局_返回, , , )
+加密数据 ＝ 存取.取文本 (“//data.signature”)
+调试输出 (“加密数据”, 加密数据)
+
+SHA256 ＝ “HMAC-SHA256 Credential=” ＋ AcceccKey ＋ “/armcloud-paas/request, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature=” ＋ 加密数据
+调试输出 (“SHA256”, SHA256)
+协议头.清空 ()
+局_网址 ＝ “https://api.vmoscloud.com/vcpcloud/api/padApi/padProperties”
+协议头.添加 (“content-type”, “application/json;charset=UTF-8”)
+协议头.添加 (“x-date”, 时间值)
+协议头.添加 (“x-host”, “api.vmoscloud.com”)
+协议头.添加 (“authorization”, SHA256)
+调试输出 (“协议头”, 协议头.获取协议头数据 ())
+调试输出 (“提交请求参数”, 请求提交数据)
+局_结果 ＝ 网页_访问_对象 (局_网址, 1, 请求提交数据, , , 协议头.获取协议头数据 (), , , , , , , , , , , , , 假)
+局_返回 ＝ 编码_Utf8到Ansi (局_结果)
+调试输出 (“请求返回”, 局_返回)
+
+.子程序 格式化数字, 文本型
+.参数 数字, 整数型
+
+.如果 (数字 ＜ 10)
+
+.否则
+
+.如果结束
+返回 (“0” ＋ 到文本 (数字))
+返回 (到文本 (数字))
+
+
+Interface Call Demo Example (Python)
+
+import binascii
+import datetime
+import hmac
+import hashlib
+import json
+import traceback
+
+import requests
+
+
+def get_signature(data, x_date, host, content_type, signed_headers, sk):
+# Given JSON data
+# TODO Convert JSON data to string (Modification point, input json needs to have spaces removed)
+json_string = json.dumps(data, separators=(',', ':'), ensure_ascii = False)
+print(json_string)
+
+# Calculate SHA-256 hash
+hash_object = hashlib.sha256(json_string.encode())
+x_content_sha256 = hash_object.hexdigest()
+
+# Use f-string to build canonicalStringBuilder
+canonical_string_builder = (
+f"host:{host}\n"
+f"x-date:{x_date}\n"
+f"content-type:{content_type}\n"
+f"signedHeaders:{signed_headers}\n"
+f"x-content-sha256:{x_content_sha256}"
+)
+
+# Assuming these variables are already assigned
+# short_x_date = datetime.datetime.now().strftime("%Y%m%d")  # Short request time, e.g.: "20240101"
+short_x_date = x_date[:8]  # Short request time, e.g.: "20240101"
+service = "armcloud-paas"  # Service name
+
+# Construct credentialScope
+credential_scope = "{}/{}/request".format(short_x_date, service)
+
+# Assuming these variables are already assigned
+algorithm = "HMAC-SHA256"
+
+# Calculate SHA-256 hash of canonicalStringBuilder
+hash_sha256 = hashlib.sha256(canonical_string_builder.encode()).hexdigest()
+# Construct StringToSign
+string_to_sign = (
+algorithm + '\n' +
+x_date + '\n' +
+credential_scope + '\n' +
+hash_sha256
+)
+
+# Assuming these variables are already assigned
+service = "armcloud-paas"  # Service name
+
+# First hmacSHA256
+first_hmac = hmac.new(sk.encode(), digestmod=hashlib.sha256)
+first_hmac.update(short_x_date.encode())
+first_hmac_result = first_hmac.digest()
+
+# Second hmacSHA256
+second_hmac = hmac.new(first_hmac_result, digestmod=hashlib.sha256)
+second_hmac.update(service.encode())
+second_hmac_result = second_hmac.digest()
+
+# Third hmacSHA256
+signing_key = hmac.new(second_hmac_result, b'request', digestmod=hashlib.sha256).digest()
+
+# Use signing_key and string_to_sign to calculate HMAC-SHA256
+signature_bytes = hmac.new(signing_key, string_to_sign.encode(), hashlib.sha256).digest()
+
+# Convert HMAC-SHA256 result to hex encoded string
+signature = binascii.hexlify(signature_bytes).decode()
+
+return signature
+
+
+def paas_url_util(url, data, ak, sk):
+x_date = datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")
+content_type = "application/json"
+signed_headers = f"content-type;host;x-content-sha256;x-date"
+ShortDate = x_date[:8]
+host = "openapi-hk.armcloud.net"
+# Get signature
+signature = get_signature(data, x_date, host, content_type, signed_headers, sk)
+url = f"http://openapi-hk.armcloud.net{url}"
+payload = json.dumps(data)
+headers = {
+'Content-Type': content_type,
+'x-date': x_date,
+'x-host': host,
+'authorization': f"HMAC-SHA256 Credential={ak}/{ShortDate}/armcloud-paas/request, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature={signature}"
+}
+response = requests.request("POST", url, headers=headers, data=payload)
+return response.json()
+
+
+def vmos_url_util(url, data, AccessKey, sk):
+x_date = datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")
+content_type = "application/json;charset=UTF-8"
+signed_headers = f"content-type;host;x-content-sha256;x-date"
+ShortDate = x_date[:8]
+host = "api.vmoscloud.com"
+
+# Get signature
+signature = get_signature(data, x_date, host, content_type, signed_headers, sk)
+url = f"https://api.vmoscloud.com{url}"
+
+payload = json.dumps(data, ensure_ascii = False)
+headers = {
+'content-type': "application/json;charset=UTF-8",
+'x-date': x_date,
+'x-host': "api.vmoscloud.com",
+'authorization': f"HMAC-SHA256 Credential={AccessKey}, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature={signature}"
+}
+response = requests.request("POST", url, headers=headers, data=payload)
+return response.json()
+
+
+# Get instance list information with paging based on query conditions /vcpcloud/api/padApi/infos
+pad_infos_url='/vcpcloud/api/padApi/padTaskDetail'
+pad_infos_body={"taskIds":[4224]}
+
+# vmos interface call
+print(vmos_url_util(pad_infos_url, pad_infos_body, 'Access Key ID','Secret Access Key'))
+
+Signature Generation Utility Class Example (Node)
+
+const CryptoJS = require("crypto-js");
+const moment = require("moment");
+
+/**
+* Class for generating HMAC-SHA256 signatures for API requests to Vmos cloud services.
+*/
+class VmosAPISigner {
+constructor(accessKeyId, secretAccessKey) {
+this.accessKeyId = accessKeyId;
+this.secretAccessKey = secretAccessKey;
+this.contentType = "application/json;charset=UTF-8";
+this.host = "api.vmoscloud.com";
+this.service = "armcloud-paas";
+this.algorithm = "HMAC-SHA256";
+}
+
+// Generate authentication headers for API requests
+signRequest(requestOptions) {
+const { method, path, queryParams = {}, body = null } = requestOptions;
+
+// Process request parameters
+let params = "";
+if (method === "POST" && body) {
+params = typeof body === "string" ? body : JSON.stringify(body);
+} else if (method === "GET" && Object.keys(queryParams).length > 0) {
+params = new URLSearchParams(queryParams).toString();
+}
+
+// Generate timestamp
+const xDate = moment().utc().format("YYYYMMDDTHHmmss[Z]");
+const shortXDate = xDate.substring(0, 8);
+const credentialScope = `${shortXDate}/${this.service}/request`;
+
+// Build canonical request string
+const canonicalString = [
+`host:${this.host}`,
+`x-date:${xDate}`,
+`content-type:${this.contentType}`,
+`signedHeaders:content-type;host;x-content-sha256;x-date`,
+`x-content-sha256:${CryptoJS.SHA256(params).toString()}`,
+].join("\n");
+
+// Calculate signature
+const stringToSign = [
+this.algorithm,
+xDate,
+credentialScope,
+CryptoJS.SHA256(canonicalString).toString(),
+].join("\n");
+
+const kDate = CryptoJS.HmacSHA256(shortXDate, this.secretAccessKey);
+const kService = CryptoJS.HmacSHA256(this.service, kDate);
+const signKey = CryptoJS.HmacSHA256("request", kService);
+
+// Generate final signature
+const sign = CryptoJS.HmacSHA256(stringToSign, signKey);
+const signature = sign.toString(CryptoJS.enc.Hex);
+
+// Construct authorization header
+const authorization = [
+`HMAC-SHA256 Credential=${this.accessKeyId}/${credentialScope}`,
+`SignedHeaders=content-type;host;x-content-sha256;x-date`,
+`Signature=${signature}`,
+].join(", ");
+
+// Return signed request headers
+return {
+"x-date": xDate,
+"x-host": this.host,
+authorization: authorization,
+"content-type": this.contentType,
+};
+}
+}
+
+Interface Call Demo Example (Node)
+
+const CryptoJS = require("crypto-js");
+const moment = require("moment");
+const axios = require("axios");
+
+axios.interceptors.request.use(
+(config) => {
+// Convert Content-Type header to lowercase
+if (config.headers["Content-Type"]) {
+config.headers["content-type"] = config.headers["Content-Type"];
+delete config.headers["Content-Type"];
+}
+return config;
+},
+(error) => {
+// Handle request errors
+return Promise.reject(error);
+}
+);
+
+/**
+* Class for generating HMAC-SHA256 signatures for API requests to Vmos cloud services.
+*/
+class VmosAPISigner {
+constructor(accessKeyId, secretAccessKey) {
+this.accessKeyId = accessKeyId;
+this.secretAccessKey = secretAccessKey;
+this.contentType = "application/json;charset=UTF-8";
+this.host = "api.vmoscloud.com";
+this.service = "armcloud-paas";
+this.algorithm = "HMAC-SHA256";
+}
+
+// Generate authentication headers for API requests
+signRequest(requestOptions) {
+const { method, path, queryParams = {}, body = null } = requestOptions;
+
+// Process request parameters
+let params = "";
+if (method === "POST" && body) {
+params = typeof body === "string" ? body : JSON.stringify(body);
+} else if (method === "GET" && Object.keys(queryParams).length > 0) {
+params = new URLSearchParams(queryParams).toString();
+}
+
+// Generate timestamp
+const xDate = moment().utc().format("YYYYMMDDTHHmmss[Z]");
+const shortXDate = xDate.substring(0, 8);
+const credentialScope = `${shortXDate}/${this.service}/request`;
+
+// Build canonical request string
+const canonicalString = [
+`host:${this.host}`,
+`x-date:${xDate}`,
+`content-type:${this.contentType}`,
+`signedHeaders:content-type;host;x-content-sha256;x-date`,
+`x-content-sha256:${CryptoJS.SHA256(params).toString()}`,
+].join("\n");
+
+// Calculate signature
+const stringToSign = [
+this.algorithm,
+xDate,
+credentialScope,
+CryptoJS.SHA256(canonicalString).toString(),
+].join("\n");
+
+const kDate = CryptoJS.HmacSHA256(shortXDate, this.secretAccessKey);
+const kService = CryptoJS.HmacSHA256(this.service, kDate);
+const signKey = CryptoJS.HmacSHA256("request", kService);
+
+// Generate final signature
+const sign = CryptoJS.HmacSHA256(stringToSign, signKey);
+const signature = sign.toString(CryptoJS.enc.Hex);
+
+// Construct authorization header
+const authorization = [
+`HMAC-SHA256 Credential=${this.accessKeyId}/${credentialScope}`,
+`SignedHeaders=content-type;host;x-content-sha256;x-date`,
+`Signature=${signature}`,
+].join(", ");
+
+// Return signed request headers
+return {
+"x-date": xDate,
+"x-host": this.host,
+authorization: authorization,
+"content-type": this.contentType,
+};
+}
+}
+
+// Usage Example
+async function makeSignedRequest() {
+const signer = new VmosAPISigner(
+"", // Access Key ID
+"" // Secret Access Key
+);
+
+const baseURL = "https://api.vmoscloud.com";
+
+// Example GET request configuration
+const getRequest = {
+method: "GET",
+path: "/vcpcloud/api/padApi/getProxys",
+queryParams: { page: 1, rows: 10 },
+};
+
+// Example POST request configuration
+const postRequest = {
+method: "POST",
+path: "/vcpcloud/api/padApi/userPadList",
+body: { padCode: "AC32010790572" },
+};
+
+await axios({
+baseURL: baseURL,
+method: getRequest.method,
+url: getRequest.path,
+headers: signer.signRequest(getRequest),
+params: getRequest.queryParams,
+}).then((response) => {
+console.log("getRequest Response:", response.data);
+});
+
+await axios({
+baseURL: baseURL,
+method: postRequest.method,
+url: postRequest.path,
+headers: signer.signRequest(postRequest),
+data: postRequest.body,
+}).then((response) => {
+console.log("postRequest Response:", response.data);
+});
+}
+
+// Run example requests
+makeSignedRequest();
+
+Signature Generation Utility Class Example (Go)
+
+package main
+
+import (
+"bytes"
+"crypto/hmac"
+"crypto/sha256"
+"encoding/hex"
+"encoding/json"
+"fmt"
+"io"
+"net/http"
+"net/url"
+"sort"
+"strings"
+"time"
+)
+
+type VmosAPISigner struct {
+AccessKeyId     string
+SecretAccessKey string
+ContentType     string
+Host            string
+Service         string
+Algorithm       string
+}
+
+func NewVmosAPISigner(accessKeyId, secretAccessKey string) *VmosAPISigner {
+return &VmosAPISigner{
+AccessKeyId:     accessKeyId,
+SecretAccessKey: secretAccessKey,
+ContentType:     "application/json;charset=UTF-8",
+Host:            "api.vmoscloud.com",
+Service:         "armcloud-paas",
+Algorithm:       "HMAC-SHA256",
+}
+}
+
+func sha256Hex(data string) string {
+hash := sha256.Sum256([]byte(data))
+return hex.EncodeToString(hash[:])
+}
+
+func hmacSHA256(key []byte, data string) []byte {
+h := hmac.New(sha256.New, key)
+h.Write([]byte(data))
+return h.Sum(nil)
+}
+
+func (s *VmosAPISigner) SignRequest(method, path string,
+queryParams map[string]string,
+body interface{}) map[string]string {
+var paramStr string
+if method == http.MethodPost && body != nil {
+bodyBytes, _ := json.Marshal(body)
+paramStr = string(bodyBytes)
+} else if method == http.MethodGet && len(queryParams) > 0 {
+var queryParts []string
+for k, v := range queryParams {
+queryParts = append(queryParts, url.QueryEscape(k)+"="+url.QueryEscape(v))
+}
+sort.Strings(queryParts)
+paramStr = strings.Join(queryParts, "&")
+}
+
+xDate := time.Now().UTC().Format("20060102T150405Z")
+shortDate := xDate[:8]
+credentialScope := fmt.Sprintf("%s/%s/request", shortDate, s.Service)
+
+// Canonical string
+canonicalString := fmt.Sprintf(
+"host:%s\nx-date:%s\ncontent-type:%s\nsignedHeaders:content-type;host;x-content-sha256;x-date\nx-content-sha256:%s",
+s.Host,
+xDate,
+s.ContentType,
+sha256Hex(paramStr),
+)
+
+// String to sign
+stringToSign := fmt.Sprintf(
+"%s\n%s\n%s\n%s",
+s.Algorithm,
+xDate,
+credentialScope,
+sha256Hex(canonicalString),
+)
+
+kDate := hmacSHA256([]byte(s.SecretAccessKey), shortDate)
+kService := hmacSHA256(kDate, s.Service)
+signKey := hmacSHA256(kService, "request")
+
+signature := hex.EncodeToString(hmacSHA256(signKey, stringToSign))
+
+authorization := fmt.Sprintf(
+"HMAC-SHA256 Credential=%s/%s, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature=%s",
+s.AccessKeyId,
+credentialScope,
+signature,
+)
+
+return map[string]string{
+"x-date":        xDate,
+"x-host":        s.Host,
+"authorization": authorization,
+"content-type":  s.ContentType,
+}
+}
+
+Interface Call Demo Example (Go)
+
+package main
+
+import (
+"bytes"
+"crypto/hmac"
+"crypto/sha256"
+"encoding/hex"
+"encoding/json"
+"fmt"
+"io"
+"net/http"
+"net/url"
+"sort"
+"strings"
+"time"
+)
+
+type VmosAPISigner struct {
+AccessKeyId     string
+SecretAccessKey string
+ContentType     string
+Host            string
+Service         string
+Algorithm       string
+}
+
+func NewVmosAPISigner(accessKeyId, secretAccessKey string) *VmosAPISigner {
+return &VmosAPISigner{
+AccessKeyId:     accessKeyId,
+SecretAccessKey: secretAccessKey,
+ContentType:     "application/json;charset=UTF-8",
+Host:            "api.vmoscloud.com",
+Service:         "armcloud-paas",
+Algorithm:       "HMAC-SHA256",
+}
+}
+
+func sha256Hex(data string) string {
+hash := sha256.Sum256([]byte(data))
+return hex.EncodeToString(hash[:])
+}
+
+func hmacSHA256(key []byte, data string) []byte {
+h := hmac.New(sha256.New, key)
+h.Write([]byte(data))
+return h.Sum(nil)
+}
+
+func (s *VmosAPISigner) SignRequest(method, path string,
+queryParams map[string]string,
+body interface{}) map[string]string {
+var paramStr string
+if method == http.MethodPost && body != nil {
+bodyBytes, _ := json.Marshal(body)
+paramStr = string(bodyBytes)
+} else if method == http.MethodGet && len(queryParams) > 0 {
+var queryParts []string
+for k, v := range queryParams {
+queryParts = append(queryParts, url.QueryEscape(k)+"="+url.QueryEscape(v))
+}
+sort.Strings(queryParts)
+paramStr = strings.Join(queryParts, "&")
+}
+
+xDate := time.Now().UTC().Format("20060102T150405Z")
+shortDate := xDate[:8]
+credentialScope := fmt.Sprintf("%s/%s/request", shortDate, s.Service)
+
+// Canonical string
+canonicalString := fmt.Sprintf(
+"host:%s\nx-date:%s\ncontent-type:%s\nsignedHeaders:content-type;host;x-content-sha256;x-date\nx-content-sha256:%s",
+s.Host,
+xDate,
+s.ContentType,
+sha256Hex(paramStr),
+)
+
+// String to sign
+stringToSign := fmt.Sprintf(
+"%s\n%s\n%s\n%s",
+s.Algorithm,
+xDate,
+credentialScope,
+sha256Hex(canonicalString),
+)
+
+kDate := hmacSHA256([]byte(s.SecretAccessKey), shortDate)
+kService := hmacSHA256(kDate, s.Service)
+signKey := hmacSHA256(kService, "request")
+
+signature := hex.EncodeToString(hmacSHA256(signKey, stringToSign))
+
+authorization := fmt.Sprintf(
+"HMAC-SHA256 Credential=%s/%s, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature=%s",
+s.AccessKeyId,
+credentialScope,
+signature,
+)
+
+return map[string]string{
+"x-date":        xDate,
+"x-host":        s.Host,
+"authorization": authorization,
+"content-type":  s.ContentType,
+}
+}
+
+func sendRequest(method, path string, queryParams map[string]string, body interface{}, signer *VmosAPISigner) {
+baseURL := "https://api.vmoscloud.com"
+
+// Build URL
+fullURL := baseURL + path
+if method == http.MethodGet && len(queryParams) > 0 {
+values := url.Values{}
+for k, v := range queryParams {
+values.Add(k, v)
+}
+fullURL += "?" + values.Encode()
+}
+
+// Prepare body
+var bodyReader io.Reader
+if method == http.MethodPost && body != nil {
+bodyBytes, _ := json.Marshal(body)
+bodyReader = bytes.NewReader(bodyBytes)
+}
+
+// Sign
+headers := signer.SignRequest(method, path, queryParams, body)
+
+// Create request
+req, err := http.NewRequest(method, fullURL, bodyReader)
+if err != nil {
+fmt.Println("Failed to create request:", err)
+return
+}
+
+for k, v := range headers {
+req.Header[k] = []string{v}
+}
+
+client := &http.Client{}
+resp, err := client.Do(req)
+if err != nil {
+fmt.Println("Request failed:", err)
+return
+}
+defer resp.Body.Close()
+
+respBody, _ := io.ReadAll(resp.Body)
+fmt.Printf("[%s] %s\n", method, string(respBody))
+}
+
+func main() {
+signer := NewVmosAPISigner(
+"", // Access Key ID
+"",         // Secret Access Key
+)
+
+// Example GET request
+getParams := map[string]string{
+"page": "1",
+"rows": "10",
+}
+sendRequest("GET", "/vcpcloud/api/padApi/getProxys", getParams, nil, signer)
+
+// Example POST request
+postBody := map[string]string{
+"padCode": "AC32010790572",
+}
+sendRequest("POST", "/vcpcloud/api/padApi/userPadList", nil, postBody, signer)
+}
+
+Signature Generation Utility Class Example (PHP)
+
+<?php
+
+class VmosAPISigner
+{
+private $accessKeyId;
+private $secretAccessKey;
+private $contentType = "application/json;charset=UTF-8";
+private $host = "api.vmoscloud.com";
+private $service = "armcloud-paas";
+private $algorithm = "HMAC-SHA256";
+
+// Constructor for VmosAPISigner
+public function __construct($accessKeyId, $secretAccessKey)
+{
+$this->accessKeyId = $accessKeyId;
+$this->secretAccessKey = $secretAccessKey;
+}
+
+// Generate authentication headers for API requests
+public function signRequest($method, $path, $queryParams = [], $body = null)
+{
+$params = "";
+if (strtoupper($method) === "POST" && $body !== null) {
+$params = is_string($body) ? $body : json_encode($body, JSON_UNESCAPED_UNICODE);
+} elseif (strtoupper($method) === "GET" && !empty($queryParams)) {
+$params = http_build_query($queryParams);
+}
+
+$xDate = gmdate("Ymd\THis\Z");
+$shortXDate = substr($xDate, 0, 8);
+$credentialScope = "$shortXDate/{$this->service}/request";
+
+$xContentSha256 = hash("sha256", $params);
+
+$canonicalString = implode("\n", [
+"host:{$this->host}",
+"x-date:$xDate",
+"content-type:{$this->contentType}",
+"signedHeaders:content-type;host;x-content-sha256;x-date",
+"x-content-sha256:$xContentSha256"
+]);
+
+$hashedCanonicalString = hash("sha256", $canonicalString);
+
+$stringToSign = implode("\n", [
+$this->algorithm,
+$xDate,
+$credentialScope,
+$hashedCanonicalString
+]);
+
+$kDate = hash_hmac("sha256", $shortXDate, $this->secretAccessKey, true);
+$kService = hash_hmac("sha256", $this->service, $kDate, true);
+$signKey = hash_hmac("sha256", "request", $kService, true);
+
+$signature = hash_hmac("sha256", $stringToSign, $signKey);
+
+$authorization = implode(", ", [
+"{$this->algorithm} Credential={$this->accessKeyId}/$credentialScope",
+"SignedHeaders=content-type;host;x-content-sha256;x-date",
+"Signature=$signature"
+]);
+
+return [
+"x-date: $xDate",
+"x-host: {$this->host}",
+"authorization: $authorization",
+"content-type: {$this->contentType}"
+];
+}
+}
+
+Interface Call Demo Example (PHP)
+
+<?php
+
+class VmosAPISigner
+{
+private $accessKeyId;
+private $secretAccessKey;
+private $contentType = "application/json;charset=UTF-8";
+private $host = "api.vmoscloud.com";
+private $service = "armcloud-paas";
+private $algorithm = "HMAC-SHA256";
+
+// Constructor for VmosAPISigner
+public function __construct($accessKeyId, $secretAccessKey)
+{
+$this->accessKeyId = $accessKeyId;
+$this->secretAccessKey = $secretAccessKey;
+}
+
+// Generate authentication headers for API requests
+public function signRequest($method, $path, $queryParams = [], $body = null)
+{
+$params = "";
+if (strtoupper($method) === "POST" && $body !== null) {
+$params = is_string($body) ? $body : json_encode($body, JSON_UNESCAPED_UNICODE);
+} elseif (strtoupper($method) === "GET" && !empty($queryParams)) {
+$params = http_build_query($queryParams);
+}
+
+$xDate = gmdate("Ymd\THis\Z");
+$shortXDate = substr($xDate, 0, 8);
+$credentialScope = "$shortXDate/{$this->service}/request";
+
+$xContentSha256 = hash("sha256", $params);
+
+$canonicalString = implode("\n", [
+"host:{$this->host}",
+"x-date:$xDate",
+"content-type:{$this->contentType}",
+"signedHeaders:content-type;host;x-content-sha256;x-date",
+"x-content-sha256:$xContentSha256"
+]);
+
+$hashedCanonicalString = hash("sha256", $canonicalString);
+
+$stringToSign = implode("\n", [
+$this->algorithm,
+$xDate,
+$credentialScope,
+$hashedCanonicalString
+]);
+
+$kDate = hash_hmac("sha256", $shortXDate, $this->secretAccessKey, true);
+$kService = hash_hmac("sha256", $this->service, $kDate, true);
+$signKey = hash_hmac("sha256", "request", $kService, true);
+
+$signature = hash_hmac("sha256", $stringToSign, $signKey);
+
+$authorization = implode(", ", [
+"{$this->algorithm} Credential={$this->accessKeyId}/$credentialScope",
+"SignedHeaders=content-type;host;x-content-sha256;x-date",
+"Signature=$signature"
+]);
+
+return [
+"x-date: $xDate",
+"x-host: {$this->host}",
+"authorization: $authorization",
+"content-type: {$this->contentType}"
+];
+}
+}
+
+function makeSignedRequest()
+{
+$signer = new VmosAPISigner(
+"",  // Access Key ID
+""  // Secret Access Key
+);
+
+$baseURL = "https://api.vmoscloud.com";
+
+// Example GET request
+$getPath = "/vcpcloud/api/padApi/getProxys";
+$getParams = ["page" => 1, "rows" => 10];
+$getHeaders = $signer->signRequest("GET", $getPath, $getParams);
+
+$getUrl = $baseURL . $getPath . '?' . http_build_query($getParams);
+$getCurl = curl_init($getUrl);
+curl_setopt($getCurl, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($getCurl, CURLOPT_HTTPHEADER, $getHeaders);
+curl_setopt($getCurl, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($getCurl, CURLOPT_SSL_VERIFYHOST, false);
+
+$getResponse = curl_exec($getCurl);
+curl_close($getCurl);
+echo "GET Response:\n" . $getResponse . "\n";
+
+// Example POST request
+$postPath = "/vcpcloud/api/padApi/userPadList";
+$postData = ["padCode" => "AC32010790572"];
+$postHeaders = $signer->signRequest("POST", $postPath, [], $postData);
+
+$postCurl = curl_init($baseURL . $postPath);
+curl_setopt($postCurl, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($postCurl, CURLOPT_POST, true);
+curl_setopt($postCurl, CURLOPT_HTTPHEADER, $postHeaders);
+curl_setopt($postCurl, CURLOPT_POSTFIELDS, json_encode($postData, JSON_UNESCAPED_UNICODE));
+curl_setopt($postCurl, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($postCurl, CURLOPT_SSL_VERIFYHOST, false);
+
+$postResponse = curl_exec($postCurl);
+if (curl_errno($postCurl)) {
+echo "cURL Error: \n" . curl_error($postCurl) . "\n";
+} else {
+$httpCode = curl_getinfo($postCurl, CURLINFO_HTTP_CODE);
+echo "POST Response HTTP Status: $httpCode\n";
+echo "POST Response:\n$postResponse\n";
+}
+curl_close($postCurl);
+}
+
+// Execute the signature request
+makeSignedRequest();
+
+Signature Generation Utility Class Example (.NET)
+
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Threading.Tasks;
+using System.Security.Cryptography;
+
+public class VmosAPISigner
+{
+private readonly string accessKeyId;
+private readonly string secretAccessKey;
+private readonly string contentType = "application/json;charset=utf-8";
+private readonly string host = "api.vmoscloud.com";
+private readonly string service = "armcloud-paas";
+private readonly string algorithm = "HMAC-SHA256";
+
+public VmosAPISigner(string accessKeyId, string secretAccessKey)
+{
+this.accessKeyId = accessKeyId;
+this.secretAccessKey = secretAccessKey;
+}
+
+public Dictionary<string, string> SignRequest(string method, string path, Dictionary<string, string>? queryParams = null, object? body = null)
+{
+string paramsString = "";
+
+if (method == "POST" && body != null)
+{
+paramsString = JsonSerializer.Serialize(body);
+}
+else if (method == "GET" && queryParams != null)
+{
+var query = new FormUrlEncodedContent(queryParams).ReadAsStringAsync().Result;
+paramsString = query;
+}
+
+var utcNow = DateTime.UtcNow;
+var xDate = utcNow.ToString("yyyyMMdd'T'HHmmss'Z'");
+var shortXDate = utcNow.ToString("yyyyMMdd");
+var credentialScope = $"{shortXDate}/{service}/request";
+
+// Hash body or params
+var payloadHash = SHA256Hex(paramsString);
+
+// Canonical string
+var canonicalString = string.Join("\n", new[]
+{
+$"host:{host}",
+$"x-date:{xDate}",
+$"content-type:{contentType}",
+$"signedHeaders:content-type;host;x-content-sha256;x-date",
+$"x-content-sha256:{payloadHash}"
+});
+
+// Create string to sign
+var stringToSign = string.Join("\n", new[]
+{
+algorithm,
+xDate,
+credentialScope,
+SHA256Hex(canonicalString)
+});
+
+
+// Derive signing key
+var kDate = HmacSHA256(shortXDate, secretAccessKey);
+
+var kService = HmacSHA256(service, kDate);
+
+var signKey = HmacSHA256("request", kService);
+
+var signature = ByteArrayToHex(HmacSHA256(stringToSign, signKey));
+
+var authorization = string.Join(", ", new[]
+{
+$"{algorithm} Credential={accessKeyId}/{credentialScope}",
+"SignedHeaders=content-type;host;x-content-sha256;x-date",
+$"Signature={signature}"
+});
+
+return new Dictionary<string, string>
+{
+{ "x-date", xDate },
+{ "x-host", host },
+{ "authorization", authorization },
+{ "content-type", contentType }
+};
+}
+
+private static string SHA256Hex(string data)
+{
+using var sha256 = SHA256.Create();
+byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
+return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+}
+
+private static byte[] HmacSHA256(string data, string key)
+{
+return HmacSHA256(data, Encoding.UTF8.GetBytes(key));
+}
+
+private static byte[] HmacSHA256(string data, byte[] key)
+{
+using var hmac = new HMACSHA256(key);
+return hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
+}
+
+private static string ByteArrayToHex(byte[] bytes)
+{
+return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+}
+}
+
+Interface Call Demo Example (.NET)
+Signer.cs
+
+
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Threading.Tasks;
+using System.Security.Cryptography;
+
+public class VmosAPISigner
+{
+private readonly string accessKeyId;
+private readonly string secretAccessKey;
+private readonly string contentType = "application/json;charset=utf-8";
+private readonly string host = "api.vmoscloud.com";
+private readonly string service = "armcloud-paas";
+private readonly string algorithm = "HMAC-SHA256";
+
+public VmosAPISigner(string accessKeyId, string secretAccessKey)
+{
+this.accessKeyId = accessKeyId;
+this.secretAccessKey = secretAccessKey;
+}
+
+public Dictionary<string, string> SignRequest(string method, string path, Dictionary<string, string>? queryParams = null, object? body = null)
+{
+string paramsString = "";
+
+if (method == "POST" && body != null)
+{
+paramsString = JsonSerializer.Serialize(body);
+}
+else if (method == "GET" && queryParams != null)
+{
+var query = new FormUrlEncodedContent(queryParams).ReadAsStringAsync().Result;
+paramsString = query;
+}
+
+var utcNow = DateTime.UtcNow;
+var xDate = utcNow.ToString("yyyyMMdd'T'HHmmss'Z'");
+var shortXDate = utcNow.ToString("yyyyMMdd");
+var credentialScope = $"{shortXDate}/{service}/request";
+
+// Hash body or params
+var payloadHash = SHA256Hex(paramsString);
+
+// Canonical string
+var canonicalString = string.Join("\n", new[]
+{
+$"host:{host}",
+$"x-date:{xDate}",
+$"content-type:{contentType}",
+$"signedHeaders:content-type;host;x-content-sha256;x-date",
+$"x-content-sha256:{payloadHash}"
+});
+
+// Create string to sign
+var stringToSign = string.Join("\n", new[]
+{
+algorithm,
+xDate,
+credentialScope,
+SHA256Hex(canonicalString)
+});
+
+
+// Derive signing key
+var kDate = HmacSHA256(shortXDate, secretAccessKey);
+
+var kService = HmacSHA256(service, kDate);
+
+var signKey = HmacSHA256("request", kService);
+
+var signature = ByteArrayToHex(HmacSHA256(stringToSign, signKey));
+
+var authorization = string.Join(", ", new[]
+{
+$"{algorithm} Credential={accessKeyId}/{credentialScope}",
+"SignedHeaders=content-type;host;x-content-sha256;x-date",
+$"Signature={signature}"
+});
+
+return new Dictionary<string, string>
+{
+{ "x-date", xDate },
+{ "x-host", host },
+{ "authorization", authorization },
+{ "content-type", contentType }
+};
+}
+
+private static string SHA256Hex(string data)
+{
+using var sha256 = SHA256.Create();
+byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
+return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+}
+
+private static byte[] HmacSHA256(string data, string key)
+{
+return HmacSHA256(data, Encoding.UTF8.GetBytes(key));
+}
+
+private static byte[] HmacSHA256(string data, byte[] key)
+{
+using var hmac = new HMACSHA256(key);
+return hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
+}
+
+private static string ByteArrayToHex(byte[] bytes)
+{
+return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+}
+}
+
+Request.cs
+
+
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Text;
+using System.Text.Json;
+using System.Net.Http.Headers;
+
+class Program
+{
+static async Task Main()
+{
+var signer = new VmosAPISigner(
+"", // Access Key ID
+"" // Secret Access Key
+);
+
+using var client = new HttpClient { BaseAddress = new Uri("https://api.vmoscloud.com") };
+
+// Example GET request
+var getPath = "/vcpcloud/api/padApi/getProxys";
+var getParams = new Dictionary<string, string>
+{
+{ "page", "1" },
+{ "rows", "10" }
+};
+var getHeaders = signer.SignRequest("GET", getPath, getParams);
+var getQuery = new FormUrlEncodedContent(getParams).ReadAsStringAsync().Result;
+var getRequest = new HttpRequestMessage(HttpMethod.Get, $"{getPath}?{getQuery}");
+foreach (var h in getHeaders)
+{
+getRequest.Headers.TryAddWithoutValidation(h.Key, h.Value);
+}
+var getHttpContent = new StringContent("", Encoding.UTF8, "application/json");
+getRequest.Content = getHttpContent;
+var getResponse = await client.SendAsync(getRequest);
+Console.WriteLine("GET Response: " + await getResponse.Content.ReadAsStringAsync() + "\n");
+
+// Example POST request
+var postPath = "/vcpcloud/api/padApi/userPadList";
+var postBody = new { padCode = "AC32010790572" };
+var postHeaders = signer.SignRequest("POST", postPath, null, postBody);
+var postRequest = new HttpRequestMessage(HttpMethod.Post, postPath);
+foreach (var h in postHeaders) postRequest.Headers.TryAddWithoutValidation(h.Key, h.Value);
+postRequest.Content = new StringContent(JsonSerializer.Serialize(postBody), Encoding.UTF8, "application/json");
+var postResponse = await client.SendAsync(postRequest);
+Console.WriteLine("POST Response: " + await postResponse.Content.ReadAsStringAsync() + "\n");
+}
+}
+
+Data Encryption and Decryption Examples
+Java AES GCM Decryption
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Base64;
+
+public class AESUtils {
+private static final String AES = "AES";
+private static final String AES_CIPHER_ALGORITHM = "AES/GCM/NoPadding";
+private static final int GCM_TAG_LENGTH = 16;
+private static final int GCM_IV_LENGTH = 12;
+
+/**
+* Generates a SecretKeySpec from a given string key
+*/
+private static SecretKeySpec getKeyFromPassword(String password) throws NoSuchAlgorithmException {
+MessageDigest sha = MessageDigest.getInstance("SHA-256");
+byte[] key = sha.digest(password.getBytes());
+return new SecretKeySpec(key, AES);
+}
+
+/**
+* Generates a new Initialization Vector (IV)
+*/
+public static byte[] generateIv() {
+byte[] iv = new byte[GCM_IV_LENGTH];
+new SecureRandom().nextBytes(iv);
+return iv;
+}
+
+/**
+* Encrypts a plain text using AES algorithm and returns both the cipher text and IV
+*/
+public static String encrypt(String input, String key) {
+try {
+SecretKeySpec secretKeySpec = getKeyFromPassword(key);
+byte[] iv = generateIv();
+Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
+GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
+cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, gcmParameterSpec);
+byte[] cipherText = cipher.doFinal(input.getBytes());
+
+// Encode IV and cipher text to Base64 and concatenate them with a separator
+String ivString = Base64.getEncoder().encodeToString(iv);
+String cipherTextString = Base64.getEncoder().encodeToString(cipherText);
+return ivString + ":" + cipherTextString;
+} catch (Exception e) {
+log.error("encrypt error >>>input:{} key:{}", input, key, e);
+return null;
+}
+
+}
+
+/**
+* Decrypts an encrypted text using AES algorithm
+*/
+public static String decrypt(String encryptedData, String key) {
+try {
+SecretKeySpec secretKeySpec = getKeyFromPassword(key);
+
+// Split the encrypted data into IV and cipher text
+String[] parts = encryptedData.split(":");
+String ivString = parts[0];
+String cipherTextString = parts[1];
+
+byte[] iv = Base64.getDecoder().decode(ivString);
+byte[] cipherText = Base64.getDecoder().decode(cipherTextString);
+
+Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
+GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
+cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, gcmParameterSpec);
+byte[] plainText = cipher.doFinal(cipherText);
+return new String(plainText);
+} catch (Exception e) {
+log.error("decrypt error >>>encryptedData:{} key:{}", encryptedData, key, e);
+return null;
+}
+
+}
+
+/**
+* Encodes the input byte array to a Base64 string
+*/
+public static String encodeToString(byte[] input) {
+return Base64.getEncoder().encodeToString(input);
+}
+
+// Encodes the input string to a Base64 string
+public static String encodeToString(String input) {
+return Base64.getEncoder().encodeToString(input.getBytes());
+}
+
+/**
+* Decodes the input Base64 string to a byte array
+*/
+public static byte[] decodeToBytes(String input) {
+return Base64.getDecoder().decode(input);
+}
+
+/**
+* Decodes the input Base64 string to a regular string
+*/
+public static String decodeToString(String input) {
+byte[] decodedBytes = Base64.getDecoder().decode(input);
+return new String(decodedBytes);
+}
+
+/**
+* Encodes the input byte array to a Base64 byte array
+*/
+public static byte[] encodeToBytes(byte[] input) {
+return Base64.getEncoder().encode(input);
+}
+
+/**
+* Decodes the input Base64 byte array to a byte array
+*/
+public static byte[] decodeToBytes(byte[] input) {
+return Base64.getDecoder().decode(input);
+}
+
+public static void main(String[] args) throws Exception {
+String key = "AC22030010001"; // Arbitrary string as key
+// Decrypt the cipher text
+String decryptedText = decrypt("iMzQUI7SwzSD0kGJ:4FZ1fn1Jdd5Z4j2ehn/F3VSUVWBwLFQZH/HOCjLAI95r", key);
+System.out.println("Decrypted text: " + decryptedText);
+}
+}
+
+Next 
+V2 Simplified Signature
+

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vmos-sdk"
+version = "1.0.0"
+description = "Python SDK cho VMOS Cloud OpenAPI - Quản lý cloud phone instances"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "TMQ", email = "tmq9999@github.com"}
+]
+dependencies = [
+    "requests>=2.28.0",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+]
+callbacks = [
+    "flask>=2.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["vmos_sdk*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

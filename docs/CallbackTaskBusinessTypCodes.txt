@@ -1,0 +1,45 @@
+VMOS Cloud API
+English
+
+Product Introduction
+Product Type
+Product Billing
+OpenAPI
+User Guide
+V2 Simplified Signature
+API Documentation
+LLMs.txt (AI Quick Reference)
+OpenAPI Spec (for AI & tools)
+Error Code
+Instance Property List
+Android device modification attribute list
+Callback Task Business Type Codes
+Changelog
+Mobile Root Certificate Format Specification
+Android SDK
+Web H5 SDK
+Windows PC SDK
+Edge-Cloud Communication Development
+Similar to XP, LSP Hook framework 
+
+Related agreements
+Callback Task Business Type Codes
+
+Task execution business callback reference codes and reference JSON
+
+Task Business Type	taskBusinessType	Reference Callback JSON
+Instance Status	999	{"padCode":"ACN315009312096256","padStatus":10,"padConnectStatus":0,"taskBusinessType":999}
+Instance Restart Task	1000	{ "endTime": null, "padCode": "AC32010230013", "taskBusinessType": 1000, "taskContent": "", "taskId": 10609, "taskResult": "Success", "taskStatus": 3}
+Instance Reset Task	1001	{"endTime": null,"padCode": "AC32010230014","taskBusinessType": 1001,"taskContent": "","taskId": 10610,"taskResult": "Success","taskStatus": 3 }
+Async ADB Task Execution	1002	{ "cmd": "cd /root;ls", "cmdResult": "/system/bin/sh: cd: /root: No such file or directory", "endTime": 1734942133000, "padCode": "AC32010230014", "taskContent": null, "taskId": 10614, "taskResult": "/system/bin/sh: cd: /root: No such file or directory", "taskStatus": 3}
+App Installation Task	1003	{"endTime": 1734939747000,"padCode": "AC32010230014","taskBusinessType": 1003,"taskContent": "","taskId": 10613,"taskResult": "Success","taskStatus": 3}
+App Uninstallation Task	1004	{"endTime": 1734940052000,"padCode": "AC32010230014","taskBusinessType": 1004,"taskContent": "","taskId": null,"taskResult": "Success","taskStatus": 3}
+App Start/Stop Task	1007 / 1005	{"packageName": "com.quark.browser","padCode": "AC32010230014","taskId": 10618,"taskStatus": 3}
+Instance File Upload Task	1009	{"errorCode": null,"fileId": "cfec132ab3c4e1aff5515c4467d9bbe460","padCode": "AC32010230014","result": true,"taskBusinessType": 1009,"taskId": 10659,"taskResult": "Success","taskStatus": 3}
+Instance Upgrade Image Task	1012	{"endTime": 1734939473335,"padCode": "AC32010230013","taskBusinessType": 1012,"taskContent": "","taskId": 10612,"taskResult": "Success","taskStatus": 3}
+One-Click New Device	1124	{"endTime": 1734947364915,"padCode": "AC32010230012","taskBusinessType": 1124,"taskContent": {"ro.product.system.name": "X7"// ... contains other key-value pairs, only one example shown here},"taskId": 14655,"taskResult": "Success","taskStatus": 3}
+Image Upload Task	4001	{"imageId":"img-2505244083465456","taskBusinessType":4001,"taskStatus":-1,"failMsg":"URL address error"}
+ Prev
+Android device modification attribute list
+Next 
+Changelog

@@ -1,0 +1,185 @@
+VMOS Cloud API
+English
+
+Product Introduction
+Product Type
+Product Billing
+OpenAPI
+Android SDK
+Web H5 SDK
+Windows PC SDK
+Edge-Cloud Communication Development
+Similar to XP, LSP Hook framework 
+
+Xposed-like / LSPosed Framework
+Sensor Data Dynamic Simulation
+1. Feature Overview
+2. Supported Sensor Types and Format Details
+2.1 Motion & Pose Sensors
+2.2 Position & Environment Sensors
+2.3 Motion Detection & Biometric Sensors
+2.4 Foldable Device Specific Sensors (Foldable)
+3. Usage & Configuration Process
+3.1 Core Commands
+3.2 Data File Specification
+4. Practical Scenarios: How to Simulate
+Scenario 1: Simulate Device Rotation (Python Data Generation)
+Scenario 2: Simulate “Shake” Gesture
+5. Best Practices & Notes
+Data Optimization Suggestions
+Common Troubleshooting
+Next Steps Suggestion
+Related agreements
+Below is the VMOSCLOUD Cloud Phone Sensor Dynamic Simulation Guide. This feature allows developers to provide realistic physical environment interactions for cloud phone applications by simulating real sensor data files.
+
+1. Feature Overview
+VMOSCLOUD cloud phones support dynamic data simulation for various mobile device sensors. By injecting predefined data files into the system, developers can simulate device motion, location, environmental changes, and biometric features. This is suitable for game testing, navigation simulation, health app development, and more.
+
+2. Supported Sensor Types and Format Details
+For easy reference, sensors are divided into four major categories. Use the corresponding format string in the data file.
+
+2.1 Motion & Pose Sensors
+Sensor Name	Identifier (Key)	Data Format	Unit	Use Case
+Accelerometer	acceleration	x:y:z	m/s²	Gravity games, screen rotation
+Linear Acceleration	linear-acceleration	x:y:z	m/s²	Gesture recognition (gravity removed)
+Uncalibrated Accelerometer	acceleration-uncalibrated	x:y:z	m/s²	Raw data analysis
+Gyroscope	gyroscope	x:y:z	rad/s	3D games, VR/AR
+Uncalibrated Gyroscope	gyroscope-uncalibrated	x:y:z	rad/s	Raw angular velocity data
+Gravity Sensor	gravity	x:y:z	m/s²	Level tool, attitude detection
+Rotation Vector	rotation-vector	x:y:z	-	3D attitude control (quaternion)
+Game Rotation Vector	game-rotation-vector	x:y:z	-	Game control (no magnetometer)
+Geomagnetic Rotation Vector	geomagnetic_rotation	x:y:z	-	Compass, navigation
+Orientation Sensor	orientation	azimuth:pitch:roll	degrees	(Deprecated) Recommended to use rotation vector
+2.2 Position & Environment Sensors
+Sensor Name	Identifier (Key)	Data Format	Unit	Use Case
+Magnetometer	magnetic-field	x:y:z	μT	Compass, metal detection
+Uncalibrated Magnetometer	magnetic-field-uncalibrated	x:y:z	μT	Raw magnetic field data
+Light Sensor	light	value	lux	Auto screen brightness
+Proximity Sensor	proximity	distance	cm	Call screen-off
+Temperature Sensor	temperature	value	℃	Temperature monitoring (device dependent)
+Pressure Sensor	pressure	value	hPa	Altitude, weather
+Humidity Sensor	humidity	value	%	Environment monitoring (device dependent)
+2.3 Motion Detection & Biometric Sensors
+Sensor Name	Identifier (Key)	Data Format	Unit/Value	Use Case
+Step Counter	step-counter	count	steps	Fitness & health
+Step Detector	step-detector	value	1.0	Real-time step detection
+Significant Motion	significant-motion	value	1.0	Power-saving trigger
+Generic Motion	motion-detect	value	1.0	Security monitoring
+Tilt Detection	tilt-detector	value	1.0	Wake-up, orientation lock
+Pick-up Gesture	pick-up	value	1.0	Auto screen on
+Heart Rate	heart-rate	bpm	BPM	Health monitoring (device dependent)
+Wrist Tilt	wrist-tilt	value:measurementId	-	Smart wearable gesture
+2.4 Foldable Device Specific Sensors (Foldable)
+Only effective when simulating foldable device models (e.g., Galaxy Fold, Mate X).
+
+Sensor Name	Identifier (Key)	Data Format	Unit	Description
+Hinge Angle	hinge-angle0 (to 2)	angle	degrees	Simulate screen folding angle
+3. Usage & Configuration Process
+Sensor simulation is driven by setting a system property pointing to a local data file.
+
+3.1 Core Commands
+Bash
+
+
+# Set sensor data file path
+adb shell setprop persist.sys.cloud.sensor.tpl_dp /data/local/tmp/sensor_data.txt
+
+# Stop simulation (clear property)
+adb shell setprop persist.sys.cloud.sensor.tpl_dp ""
+3.2 Data File Specification
+File Encoding: UTF-8
+Permissions: File must be readable (recommended chmod 644)
+Size Limit: Maximum 1GB
+Basic Structure: Sensor data lines + delay command lines (delay:milliseconds)
+File Content Example:
+
+Plaintext
+
+
+# Simulate tilting left
+acceleration:-5.62:2.94:7.21
+gyroscope:-0.62:-0.12:0.12
+delay:50
+
+# Simulate tilting right
+acceleration:5.62:2.94:7.21
+gyroscope:0.62:0.12:-0.12
+delay:50
+4. Practical Scenarios: How to Simulate
+Scenario 1: Simulate Device Rotation (Python Data Generation)
+Used to test UI adaptation or game controls during device rotation.
+
+Generate Data: Use Python script to create 0–360° rotation data.
+
+Python
+
+
+import math
+
+with open('rotation.txt', 'w') as f:
+    for angle in range(0, 361, 5):
+        rad = math.radians(angle)
+        # Simulate X/Z axis gravity component changes
+        acc_x = 9.8 * math.sin(rad)
+        acc_z = 9.8 * math.cos(rad)
+        f.write(f"acceleration:{acc_x:.6f}:0.000000:{acc_z:.6f}\n")
+        f.write("delay:100\n")
+Inject Data:
+
+Bash
+
+
+adb push rotation.txt /data/local/tmp/
+adb shell setprop persist.sys.cloud.sensor.tpl_dp /data/local/tmp/rotation.txt
+Verify: Restart the target app and observe if the interface rotates with the data.
+
+Scenario 2: Simulate “Shake” Gesture
+Used to test features like WeChat Shake.
+
+Create Data File (shake.txt):
+
+Plaintext
+
+
+# Strong left shake
+acceleration:-19.0:0.0:5.0
+gyroscope:0.0:0.0:8.0
+delay:80
+# Strong right shake
+acceleration:19.0:0.0:5.0
+gyroscope:0.0:0.0:-8.0
+delay:80
+# Return to stationary
+acceleration:0.0:0.0:9.8
+gyroscope:0.0:0.0:0.0
+delay:200
+Execute Simulation:
+
+Bash
+
+
+adb push shake.txt /data/local/tmp/
+adb shell setprop persist.sys.cloud.sensor.tpl_dp /data/local/tmp/shake.txt
+# Launch app for testing
+adb shell am start com.tencent.mm/.ui.LauncherUI
+5. Best Practices & Notes
+Data Optimization Suggestions
+Smooth Transitions: Avoid sudden value jumps. Use interpolation algorithms to generate transition data between states (e.g., stationary → motion) to prevent app logic errors.
+Reasonable Delays:
+Games/VR: delay:16 (≈60Hz)
+Navigation: delay:200 – 1000 (1–5Hz)
+General apps: delay:50 – 100 (10–20Hz)
+Physical Realism:
+When stationary, accelerometer Z-axis should be approximately 9.8 m/s².
+Magnetometer strength typically ranges between 25–65 μT.
+Common Troubleshooting
+Symptom	Possible Cause	Solution
+App no response	Permission or no restart	1. Ensure app has sensor permission. 2. force-stop and restart app to re-register SensorListener.
+Simulation not working	Wrong path or permission	1. Verify setprop path. 2. Run adb shell chmod 644 <file_path>.
+Specific sensor invalid	Device incompatibility	Key point: The cloud phone model must support that hardware. Sensors like humidity, heart-rate, or hinge-angle only work on specific model templates (e.g., high-end Samsung, foldables). Check cloud instance config.
+Motion stuttering	Low sampling rate	Decrease delay value in the file.
+Next Steps Suggestion
+If you need to capture real complex motion data (e.g., running, driving), it is recommended to write a simple Android tool app, install it on a physical device, use SensorManager to listen to sensors, write the data in the above format to a text file, and then directly import it into the cloud phone. This will provide much more realistic data than script-generated values.
+
+ Prev
+Xposed-like / LSPosed Framework

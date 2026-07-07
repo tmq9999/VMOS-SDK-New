@@ -1,0 +1,737 @@
+VMOS Cloud API
+English
+
+Product Introduction
+Product Type
+Product Billing
+OpenAPI
+User Guide
+V2 Simplified Signature
+Overview
+Get Account (AK/SK)
+Request Headers
+Signing Algorithm
+bodyOrQuery Rules
+Signing Example
+Error Codes
+Examples
+curl
+java
+python
+node
+go
+php
+.net
+易语言 (Easy Language)
+FAQ
+API Documentation
+LLMs.txt (AI Quick Reference)
+OpenAPI Spec (for AI & tools)
+Error Code
+Instance Property List
+Android device modification attribute list
+Callback Task Business Type Codes
+Changelog
+Mobile Root Certificate Format Specification
+Android SDK
+Web H5 SDK
+Windows PC SDK
+Edge-Cloud Communication Development
+Similar to XP, LSP Hook framework 
+
+Related agreements
+Overview
+V2 is the simplified signing scheme for VMOSCloud OpenAPI. It runs in parallel with the original V4 (HMAC-SHA256 with derived keys); AK / SK are shared across both schemes.
+
+Existing V4 customers do not need to migrate — the legacy SDK is supported indefinitely. New integrations are encouraged to use V2: 3 headers + 1 line of SHA-256, no derived key, no JSON re-ordering, no UTC formatting required.
+
+Get Account (AK/SK)
+Prerequisites
+
+Before using the API, obtain an Access Key ID and Secret Access Key for request authentication.
+
+Steps:
+
+Log in to the VMOSCloud Platform.
+Navigate to Developer -> API.
+Copy the corresponding credentials:
+AccessKeyID (AK)
+SecretAccessKey (SK)
+Request Headers
+Every request must include the following 3 authentication headers:
+
+Name	Type	Required	Description	Example
+X-Access-Key	string	Yes	Access Key ID in plain text	ak_xxxxxxxxxxxx
+X-Timestamp	string	Yes	unix seconds (10-digit string), ±5-minute window	1747555200
+X-Sign	string	Yes	64-char lowercase hex signature	6069dfb4cb3ac57b…
+Content-Type	string	POST	Resource MIME type	application/json
+Signing Algorithm
+Plain string concatenation, no delimiters:
+
+
+signString = SK + X-Timestamp + path + bodyOrQuery
+X-Sign     = lowerHex( SHA-256( signString_UTF8 ) )
+Field	Value
+SK	Secret Access Key in plain text
+X-Timestamp	Same 10-digit unix-seconds string sent in the header (millisecond timestamps will fail the time window)
+path	Full path including the servlet prefix, e.g. /vcpcloud/api/padApi/padInfo
+bodyOrQuery	See table below
+bodyOrQuery Rules
+Request type	bodyOrQuery
+GET	Raw query string, e.g. startDate=2026-05-01&endDate=2026-05-31; empty string when no params
+POST / PUT (JSON)	Raw body (sign exactly what you send — no re-order, no whitespace strip)
+File uploads /uploadFile / /asyncCmd / /syncCmd	Empty string (file body is not signed)
+The query-string parameter order and URL encoding must match exactly what is sent on the wire. Do not re-sort or re-encode before signing.
+
+Signing Example
+Input:
+
+
+SK   = 9cucpjoyn4xxmkhj3q9el3ce
+ts   = 1747555200
+path = /vcpcloud/api/padApi/padInfo
+body = {"padCode":"AC32010601132"}
+Concatenated signString:
+
+
+9cucpjoyn4xxmkhj3q9el3ce1747555200/vcpcloud/api/padApi/padInfo{"padCode":"AC32010601132"}
+X-Sign = lowerHex( SHA-256( signString ) ) — verify your client implementation against any standard SHA-256 library.
+
+Error Codes
+code	Meaning
+2019	Signature verification failed
+2031	Invalid key (AccessKey not found)
+2032	Required header missing
+2033	Timestamp expired or malformed
+Examples
+curl
+
+TS=$(date +%s)
+AK="ak_xxxxxxxxxxxx"
+SK="sk_xxxxxxxxxxxx"
+URI="/vcpcloud/api/padApi/padInfo"
+BODY='{"padCode":"AC32010601132"}'
+
+SIGN=$(printf "%s" "${SK}${TS}${URI}${BODY}" | openssl dgst -sha256 -hex | awk '{print $2}')
+
+curl -X POST "https://api.vmoscloud.com${URI}" \
+  -H "X-Access-Key: ${AK}" \
+  -H "X-Timestamp: ${TS}" \
+  -H "X-Sign: ${SIGN}" \
+  -H "Content-Type: application/json" \
+  --data-binary "${BODY}"
+java
+
+import com.alibaba.fastjson.JSONObject;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Map;
+
+public class V2ApiRequestUtils {
+
+    private static final String BASE_URL = "https://api.vmoscloud.com";
+    private static final String ACCESS_KEY = "Access Key ID";
+    private static final String SECRET_ACCESS_KEY = "Secret Access Key";
+
+    public static String sendPostRequest(String path, JSONObject params) {
+        try {
+            String body = params == null ? "" : params.toJSONString();
+            String ts = String.valueOf(System.currentTimeMillis() / 1000);
+
+            HttpPost req = new HttpPost(BASE_URL + path);
+            req.setHeader("X-Access-Key", ACCESS_KEY);
+            req.setHeader("X-Timestamp", ts);
+            req.setHeader("X-Sign", sign(ts, path, body));
+            req.setHeader("Content-Type", "application/json");
+            req.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
+
+            try (CloseableHttpClient client = HttpClients.createDefault();
+                 CloseableHttpResponse resp = client.execute(req)) {
+                return EntityUtils.toString(resp.getEntity(), StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("V2 POST failed: " + path, e);
+        }
+    }
+
+    public static String sendGetRequest(String path, JSONObject params) {
+        try {
+            String query = buildQuery(params);
+            String ts = String.valueOf(System.currentTimeMillis() / 1000);
+
+            HttpGet req = new HttpGet(BASE_URL + path + (query.isEmpty() ? "" : "?" + query));
+            req.setHeader("X-Access-Key", ACCESS_KEY);
+            req.setHeader("X-Timestamp", ts);
+            req.setHeader("X-Sign", sign(ts, path, query));
+
+            try (CloseableHttpClient client = HttpClients.createDefault();
+                 CloseableHttpResponse resp = client.execute(req)) {
+                return EntityUtils.toString(resp.getEntity(), StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("V2 GET failed: " + path, e);
+        }
+    }
+
+    private static String sign(String ts, String path, String body) throws Exception {
+        String signString = SECRET_ACCESS_KEY + ts + path + body;
+        byte[] raw = MessageDigest.getInstance("SHA-256")
+                .digest(signString.getBytes(StandardCharsets.UTF_8));
+        return String.format("%064x", new BigInteger(1, raw));
+    }
+
+    private static String buildQuery(JSONObject params) {
+        if (params == null || params.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Object> e : params.entrySet()) {
+            if (sb.length() > 0) sb.append('&');
+            sb.append(e.getKey()).append('=').append(e.getValue());
+        }
+        return sb.toString();
+    }
+
+    public static void main(String[] args) {
+        // POST
+        JSONObject body = new JSONObject();
+        body.put("padCode", "AC32010601132");
+        System.out.println(sendPostRequest("/vcpcloud/api/padApi/padInfo", body));
+
+        // GET
+        JSONObject query = new JSONObject();
+        query.put("startDate", "2026-05-01");
+        query.put("endDate", "2026-05-31");
+        System.out.println(sendGetRequest("/vcpcloud/api/padApi/getOrderEquipmentList", query));
+    }
+}
+python
+
+import hashlib
+import time
+import json
+import requests
+
+BASE_URL = "https://api.vmoscloud.com"
+ACCESS_KEY = "Access Key ID"
+SECRET_ACCESS_KEY = "Secret Access Key"
+
+
+def _sign(ts: str, path: str, body_or_query: str) -> str:
+    return hashlib.sha256(
+        (SECRET_ACCESS_KEY + ts + path + body_or_query).encode("utf-8")
+    ).hexdigest()
+
+
+def send_post(path: str, params: dict | None = None) -> str:
+    body = json.dumps(params, separators=(",", ":"), ensure_ascii=False) if params else ""
+    ts = str(int(time.time()))
+    headers = {
+        "X-Access-Key": ACCESS_KEY,
+        "X-Timestamp": ts,
+        "X-Sign": _sign(ts, path, body),
+        "Content-Type": "application/json",
+    }
+    # Use data=bytes so requests does not rewrite the body
+    resp = requests.post(BASE_URL + path, headers=headers, data=body.encode("utf-8"))
+    return resp.text
+
+
+def send_get(path: str, params: dict | None = None) -> str:
+    query = "&".join(f"{k}={v}" for k, v in params.items()) if params else ""
+    ts = str(int(time.time()))
+    url = BASE_URL + path + (f"?{query}" if query else "")
+    headers = {
+        "X-Access-Key": ACCESS_KEY,
+        "X-Timestamp": ts,
+        "X-Sign": _sign(ts, path, query),
+    }
+    return requests.get(url, headers=headers).text
+
+
+if __name__ == "__main__":
+    # POST
+    print(send_post("/vcpcloud/api/padApi/padInfo", {"padCode": "AC32010601132"}))
+    # GET
+    print(send_get("/vcpcloud/api/padApi/getOrderEquipmentList",
+                   {"startDate": "2026-05-01", "endDate": "2026-05-31"}))
+node
+
+const crypto = require("crypto");
+
+const BASE_URL = "https://api.vmoscloud.com";
+const ACCESS_KEY = "Access Key ID";
+const SECRET_ACCESS_KEY = "Secret Access Key";
+
+function sign(ts, path, bodyOrQuery) {
+    return crypto
+        .createHash("sha256")
+        .update(SECRET_ACCESS_KEY + ts + path + bodyOrQuery, "utf8")
+        .digest("hex");
+}
+
+async function sendPost(path, params) {
+    const body = params ? JSON.stringify(params) : "";
+    const ts = Math.floor(Date.now() / 1000).toString();
+    const resp = await fetch(BASE_URL + path, {
+        method: "POST",
+        headers: {
+            "X-Access-Key": ACCESS_KEY,
+            "X-Timestamp": ts,
+            "X-Sign": sign(ts, path, body),
+            "Content-Type": "application/json",
+        },
+        body,
+    });
+    return resp.text();
+}
+
+async function sendGet(path, params) {
+    const query = params
+        ? Object.entries(params).map(([k, v]) => `${k}=${v}`).join("&")
+        : "";
+    const ts = Math.floor(Date.now() / 1000).toString();
+    const resp = await fetch(BASE_URL + path + (query ? `?${query}` : ""), {
+        headers: {
+            "X-Access-Key": ACCESS_KEY,
+            "X-Timestamp": ts,
+            "X-Sign": sign(ts, path, query),
+        },
+    });
+    return resp.text();
+}
+
+(async () => {
+    // POST
+    console.log(await sendPost("/vcpcloud/api/padApi/padInfo",
+        { padCode: "AC32010601132" }));
+    // GET
+    console.log(await sendGet("/vcpcloud/api/padApi/getOrderEquipmentList",
+        { startDate: "2026-05-01", endDate: "2026-05-31" }));
+})();
+go
+
+package main
+
+import (
+    "bytes"
+    "crypto/sha256"
+    "encoding/hex"
+    "encoding/json"
+    "fmt"
+    "io"
+    "net/http"
+    "strconv"
+    "strings"
+    "time"
+)
+
+const (
+    baseURL         = "https://api.vmoscloud.com"
+    accessKey       = "Access Key ID"
+    secretAccessKey = "Secret Access Key"
+)
+
+func sign(ts, path, bodyOrQuery string) string {
+    sum := sha256.Sum256([]byte(secretAccessKey + ts + path + bodyOrQuery))
+    return hex.EncodeToString(sum[:])
+}
+
+func sendPost(path string, params map[string]interface{}) (string, error) {
+    body := ""
+    if params != nil {
+        b, _ := json.Marshal(params)
+        body = string(b)
+    }
+    ts := strconv.FormatInt(time.Now().Unix(), 10)
+
+    req, _ := http.NewRequest("POST", baseURL+path, bytes.NewReader([]byte(body)))
+    req.Header.Set("X-Access-Key", accessKey)
+    req.Header.Set("X-Timestamp", ts)
+    req.Header.Set("X-Sign", sign(ts, path, body))
+    req.Header.Set("Content-Type", "application/json")
+
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        return "", err
+    }
+    defer resp.Body.Close()
+    bs, _ := io.ReadAll(resp.Body)
+    return string(bs), nil
+}
+
+func sendGet(path string, params map[string]string) (string, error) {
+    parts := make([]string, 0, len(params))
+    for k, v := range params {
+        parts = append(parts, k+"="+v)
+    }
+    query := strings.Join(parts, "&")
+    ts := strconv.FormatInt(time.Now().Unix(), 10)
+
+    url := baseURL + path
+    if query != "" {
+        url += "?" + query
+    }
+    req, _ := http.NewRequest("GET", url, nil)
+    req.Header.Set("X-Access-Key", accessKey)
+    req.Header.Set("X-Timestamp", ts)
+    req.Header.Set("X-Sign", sign(ts, path, query))
+
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        return "", err
+    }
+    defer resp.Body.Close()
+    bs, _ := io.ReadAll(resp.Body)
+    return string(bs), nil
+}
+
+func main() {
+    // POST
+    out, _ := sendPost("/vcpcloud/api/padApi/padInfo",
+        map[string]interface{}{"padCode": "AC32010601132"})
+    fmt.Println(out)
+
+    // GET
+    out, _ = sendGet("/vcpcloud/api/padApi/getOrderEquipmentList",
+        map[string]string{"startDate": "2026-05-01", "endDate": "2026-05-31"})
+    fmt.Println(out)
+}
+php
+
+<?php
+
+const BASE_URL = "https://api.vmoscloud.com";
+const ACCESS_KEY = "Access Key ID";
+const SECRET_ACCESS_KEY = "Secret Access Key";
+
+function v2_sign(string $ts, string $path, string $bodyOrQuery): string {
+    return hash("sha256", SECRET_ACCESS_KEY . $ts . $path . $bodyOrQuery);
+}
+
+function send_post(string $path, ?array $params = null): string {
+    $body = $params === null ? "" : json_encode($params, JSON_UNESCAPED_UNICODE);
+    $ts = (string) time();
+
+    $ch = curl_init(BASE_URL . $path);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $body,
+        CURLOPT_HTTPHEADER     => [
+            "X-Access-Key: " . ACCESS_KEY,
+            "X-Timestamp: " . $ts,
+            "X-Sign: " . v2_sign($ts, $path, $body),
+            "Content-Type: application/json",
+        ],
+    ]);
+    $resp = curl_exec($ch);
+    curl_close($ch);
+    return $resp;
+}
+
+function send_get(string $path, ?array $params = null): string {
+    $query = $params ? http_build_query($params) : "";
+    $ts = (string) time();
+    $url = BASE_URL . $path . ($query ? "?$query" : "");
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => [
+            "X-Access-Key: " . ACCESS_KEY,
+            "X-Timestamp: " . $ts,
+            "X-Sign: " . v2_sign($ts, $path, $query),
+        ],
+    ]);
+    $resp = curl_exec($ch);
+    curl_close($ch);
+    return $resp;
+}
+
+// POST
+echo send_post("/vcpcloud/api/padApi/padInfo", ["padCode" => "AC32010601132"]) . PHP_EOL;
+// GET
+echo send_get("/vcpcloud/api/padApi/getOrderEquipmentList",
+    ["startDate" => "2026-05-01", "endDate" => "2026-05-31"]) . PHP_EOL;
+.net
+
+using System;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+
+public static class V2ApiRequestUtils
+{
+    private const string BaseUrl = "https://api.vmoscloud.com";
+    private const string AccessKey = "Access Key ID";
+    private const string SecretAccessKey = "Secret Access Key";
+
+    private static readonly HttpClient Http = new HttpClient();
+
+    private static string Sign(string ts, string path, string bodyOrQuery)
+    {
+        using var sha = SHA256.Create();
+        byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(SecretAccessKey + ts + path + bodyOrQuery));
+        var sb = new StringBuilder(64);
+        foreach (var b in hash) sb.Append(b.ToString("x2"));
+        return sb.ToString();
+    }
+
+    public static async Task<string> SendPostAsync(string path, object? body)
+    {
+        string bodyJson = body == null ? "" : JsonSerializer.Serialize(body);
+        string ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+
+        var req = new HttpRequestMessage(HttpMethod.Post, BaseUrl + path)
+        {
+            Content = new StringContent(bodyJson, Encoding.UTF8, "application/json")
+        };
+        req.Headers.TryAddWithoutValidation("X-Access-Key", AccessKey);
+        req.Headers.TryAddWithoutValidation("X-Timestamp", ts);
+        req.Headers.TryAddWithoutValidation("X-Sign", Sign(ts, path, bodyJson));
+
+        var resp = await Http.SendAsync(req);
+        return await resp.Content.ReadAsStringAsync();
+    }
+
+    public static async Task<string> SendGetAsync(string path, Dictionary<string, string>? query)
+    {
+        string queryStr = query == null ? ""
+            : string.Join("&", query.Select(kv => $"{kv.Key}={kv.Value}"));
+        string ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+
+        var url = BaseUrl + path + (queryStr.Length > 0 ? "?" + queryStr : "");
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.TryAddWithoutValidation("X-Access-Key", AccessKey);
+        req.Headers.TryAddWithoutValidation("X-Timestamp", ts);
+        req.Headers.TryAddWithoutValidation("X-Sign", Sign(ts, path, queryStr));
+
+        var resp = await Http.SendAsync(req);
+        return await resp.Content.ReadAsStringAsync();
+    }
+
+    public static async Task Main()
+    {
+        // POST
+        Console.WriteLine(await SendPostAsync("/vcpcloud/api/padApi/padInfo",
+            new { padCode = "AC32010601132" }));
+        // GET
+        Console.WriteLine(await SendGetAsync("/vcpcloud/api/padApi/getOrderEquipmentList",
+            new Dictionary<string, string> { ["startDate"] = "2026-05-01", ["endDate"] = "2026-05-31" }));
+    }
+}
+易语言 (Easy Language)
+Pure Windows API (WinINet + CryptoAPI), no third-party modules.
+
+
+.版本 2
+
+.DLL命令 CryptAcquireContext, 逻辑型, "advapi32.dll", "CryptAcquireContextA"
+    .参数 phProv, 整数型, 传址
+    .参数 pszContainer, 整数型
+    .参数 pszProvider, 整数型
+    .参数 dwProvType, 整数型
+    .参数 dwFlags, 整数型
+
+.DLL命令 CryptCreateHash, 逻辑型, "advapi32.dll", "CryptCreateHash"
+    .参数 hProv, 整数型
+    .参数 Algid, 整数型
+    .参数 hKey, 整数型
+    .参数 dwFlags, 整数型
+    .参数 phHash, 整数型, 传址
+
+.DLL命令 CryptHashData, 逻辑型, "advapi32.dll", "CryptHashData"
+    .参数 hHash, 整数型
+    .参数 pbData, 字节集
+    .参数 dwDataLen, 整数型
+    .参数 dwFlags, 整数型
+
+.DLL命令 CryptGetHashParam, 逻辑型, "advapi32.dll", "CryptGetHashParam"
+    .参数 hHash, 整数型
+    .参数 dwParam, 整数型
+    .参数 pbData, 字节集
+    .参数 pdwDataLen, 整数型, 传址
+    .参数 dwFlags, 整数型
+
+.DLL命令 CryptDestroyHash, 逻辑型, "advapi32.dll", "CryptDestroyHash"
+    .参数 hHash, 整数型
+
+.DLL命令 CryptReleaseContext, 逻辑型, "advapi32.dll", "CryptReleaseContext"
+    .参数 hProv, 整数型
+    .参数 dwFlags, 整数型
+
+.DLL命令 InternetOpen, 整数型, "wininet.dll", "InternetOpenA"
+    .参数 lpszAgent, 文本型
+    .参数 dwAccessType, 整数型
+    .参数 lpszProxy, 整数型
+    .参数 lpszProxyBypass, 整数型
+    .参数 dwFlags, 整数型
+
+.DLL命令 InternetConnect, 整数型, "wininet.dll", "InternetConnectA"
+    .参数 hInternet, 整数型
+    .参数 lpszServerName, 文本型
+    .参数 nServerPort, 整数型
+    .参数 lpszUserName, 整数型
+    .参数 lpszPassword, 整数型
+    .参数 dwService, 整数型
+    .参数 dwFlags, 整数型
+    .参数 dwContext, 整数型
+
+.DLL命令 HttpOpenRequest, 整数型, "wininet.dll", "HttpOpenRequestA"
+    .参数 hConnect, 整数型
+    .参数 lpszVerb, 文本型
+    .参数 lpszObjectName, 文本型
+    .参数 lpszVersion, 整数型
+    .参数 lpszReferrer, 整数型
+    .参数 lplpszAcceptTypes, 整数型
+    .参数 dwFlags, 整数型
+    .参数 dwContext, 整数型
+
+.DLL命令 HttpAddRequestHeaders, 逻辑型, "wininet.dll", "HttpAddRequestHeadersA"
+    .参数 hRequest, 整数型
+    .参数 lpszHeaders, 文本型
+    .参数 dwHeadersLength, 整数型
+    .参数 dwModifiers, 整数型
+
+.DLL命令 HttpSendRequest, 逻辑型, "wininet.dll", "HttpSendRequestA"
+    .参数 hRequest, 整数型
+    .参数 lpszHeaders, 整数型
+    .参数 dwHeadersLength, 整数型
+    .参数 lpOptional, 字节集
+    .参数 dwOptionalLength, 整数型
+
+.DLL命令 InternetReadFile, 逻辑型, "wininet.dll", "InternetReadFile"
+    .参数 hFile, 整数型
+    .参数 lpBuffer, 字节集
+    .参数 dwNumberOfBytesToRead, 整数型
+    .参数 lpdwNumberOfBytesRead, 整数型, 传址
+
+.DLL命令 InternetCloseHandle, 逻辑型, "wininet.dll", "InternetCloseHandle"
+    .参数 hInternet, 整数型
+
+.DLL命令 GetSystemTimeAsFileTime, , "kernel32.dll", "GetSystemTimeAsFileTime"
+    .参数 lpFileTime, 长整数型, 传址
+
+.程序集 程序集1
+.程序集变量 主机, 文本型
+.程序集变量 ACCESS_KEY, 文本型
+.程序集变量 SECRET_ACCESS_KEY, 文本型
+
+.子程序 _启动子程序
+    主机 ＝ “api.vmoscloud.com”
+    ACCESS_KEY ＝ “Access Key ID”
+    SECRET_ACCESS_KEY ＝ “Secret Access Key”
+    调试输出 (V2请求 (“POST”, “/vcpcloud/api/padApi/padInfo”, “{"padCode":"AC32010601132"}”))
+    调试输出 (V2请求 (“GET”, “/vcpcloud/api/padApi/getOrderEquipmentList”, “startDate=2026-05-01&endDate=2026-05-31”))
+
+.子程序 取时间戳, 文本型
+    .局部变量 ft, 长整数型
+    GetSystemTimeAsFileTime (ft)
+    返回 (到文本 (求整 (ft ÷ 10000000 － 11644473600)))
+
+.子程序 Sha256十六进制, 文本型
+    .参数 输入, 文本型
+    .局部变量 hProv, 整数型
+    .局部变量 hHash, 整数型
+    .局部变量 数据, 字节集
+    .局部变量 摘要, 字节集
+    .局部变量 长度, 整数型
+    .局部变量 i, 整数型
+    .局部变量 b, 整数型
+    .局部变量 高, 整数型
+    .局部变量 十六, 文本型
+    .局部变量 结果, 文本型
+    十六 ＝ “0123456789abcdef”
+    数据 ＝ 到字节集 (输入)
+    .如果真 (CryptAcquireContext (hProv, 0, 0, 24, －268435456) ＝ 假)
+        返回 (“”)
+    .如果真结束
+    CryptCreateHash (hProv, 32780, 0, 0, hHash)
+    CryptHashData (hHash, 数据, 取字节集长度 (数据), 0)
+    摘要 ＝ 取空白字节集 (32)
+    长度 ＝ 32
+    CryptGetHashParam (hHash, 2, 摘要, 长度, 0)
+    CryptDestroyHash (hHash)
+    CryptReleaseContext (hProv, 0)
+    .计次循环首 (32, i)
+        b ＝ 摘要 [i]
+        高 ＝ 求整 (b ÷ 16)
+        结果 ＝ 结果 ＋ 取文本中间 (十六, 高 ＋ 1, 1) ＋ 取文本中间 (十六, b － 高 × 16 ＋ 1, 1)
+    .计次循环尾 ()
+    返回 (结果)
+
+.子程序 V2请求, 文本型
+    .参数 方法, 文本型
+    .参数 路径, 文本型
+    .参数 数据, 文本型
+    .局部变量 时间戳, 文本型
+    .局部变量 签名, 文本型
+    .局部变量 对象, 文本型
+    .局部变量 请求头, 文本型
+    .局部变量 回车换行, 文本型
+    .局部变量 hOpen, 整数型
+    .局部变量 hConn, 整数型
+    .局部变量 hReq, 整数型
+    .局部变量 标志, 整数型
+    .局部变量 包体, 字节集
+    .局部变量 缓冲, 字节集
+    .局部变量 已读, 整数型
+    .局部变量 响应, 字节集
+    时间戳 ＝ 取时间戳 ()
+    签名 ＝ Sha256十六进制 (SECRET_ACCESS_KEY ＋ 时间戳 ＋ 路径 ＋ 数据)
+    回车换行 ＝ 字符 (13) ＋ 字符 (10)
+    请求头 ＝ “X-Access-Key: ” ＋ ACCESS_KEY ＋ 回车换行 ＋ “X-Timestamp: ” ＋ 时间戳 ＋ 回车换行 ＋ “X-Sign: ” ＋ 签名
+    对象 ＝ 路径
+    .如果 (方法 ＝ “GET”)
+        .如果真 (数据 ≠ “”)
+            对象 ＝ 路径 ＋ “?” ＋ 数据
+        .如果真结束
+    .否则
+        请求头 ＝ 请求头 ＋ 回车换行 ＋ “Content-Type: application/json”
+        包体 ＝ 到字节集 (数据)
+    .如果结束
+    标志 ＝ 位或 (8388608, －2147483648)
+    hOpen ＝ InternetOpen (“VMOSCloud-EYY/1.0”, 0, 0, 0, 0)
+    hConn ＝ InternetConnect (hOpen, 主机, 443, 0, 0, 3, 0, 0)
+    hReq ＝ HttpOpenRequest (hConn, 方法, 对象, 0, 0, 0, 标志, 0)
+    HttpAddRequestHeaders (hReq, 请求头, －1, 536870912)
+    HttpSendRequest (hReq, 0, 0, 包体, 取字节集长度 (包体))
+    缓冲 ＝ 取空白字节集 (4096)
+    .判断循环首 (InternetReadFile (hReq, 缓冲, 4096, 已读) 且 已读 ＞ 0)
+        响应 ＝ 响应 ＋ 取字节集左边 (缓冲, 已读)
+    .判断循环尾 ()
+    InternetCloseHandle (hReq)
+    InternetCloseHandle (hConn)
+    InternetCloseHandle (hOpen)
+    返回 (到文本 (响应))
+FAQ
+Q1: Do existing customers need to migrate to V2? No. V4 stays supported indefinitely. See V4 signing mechanism.
+
+Q2: Can the same AK/SK be used for both schemes? Yes. The AK/SK is shared; the protocol is chosen per request.
+
+Q3: What goes in bodyOrQuery when the POST body is empty? An empty string. signString = SK + ts + path — nothing appended.
+
+Q4: How do I sign multipart file-upload endpoints? Pass an empty string for bodyOrQuery. The file body is not signed. Affected endpoints: /uploadFile, /asyncCmd, /syncCmd.
+
+Q5: Can I use millisecond timestamps? No. Must be 10-digit unix seconds. A 13-digit millisecond value falls outside the ±5-minute window and is rejected as 2033.
+
+Q6: Is X-Sign case-sensitive? The server compares case-insensitively; either case works. Lowercase is recommended for consistency.
+
+Q7: How is the protocol selected on the server? If X-Sign is present, V2 is used; otherwise the request falls back to V4 (Authorization header). Both schemes are active simultaneously.
+
+ Prev
+User Guide
+Next 
+API Documentation

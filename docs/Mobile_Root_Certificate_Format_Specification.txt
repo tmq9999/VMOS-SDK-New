@@ -1,0 +1,191 @@
+VMOS Cloud API
+English
+
+Product Introduction
+Product Type
+Product Billing
+OpenAPI
+User Guide
+V2 Simplified Signature
+API Documentation
+LLMs.txt (AI Quick Reference)
+OpenAPI Spec (for AI & tools)
+Error Code
+Instance Property List
+Android device modification attribute list
+Callback Task Business Type Codes
+Changelog
+Mobile Root Certificate Format Specification
+Certificate Format Overview
+JSON Structure
+Field Descriptions
+ECC Certificate Chain
+RSA Certificate Chain
+Conversion Tool
+Android SDK
+Web H5 SDK
+Windows PC SDK
+Edge-Cloud Communication Development
+Similar to XP, LSP Hook framework 
+
+Related agreements
+Mobile Root Certificate Format Specification
+Certificate Format Overview
+The mobile root certificate is stored in JSON format and includes certificate chains for both ECC and RSA encryption algorithms.
+Each certificate chain contains the root certificate, intermediate certificate(s), leaf certificate, and the corresponding private key.
+All certificates and keys are in DER format and stored using Base64 encoding.
+The certificate chain supports up to two intermediate certificates, named sequentially as intermediate0 and intermediate1.
+
+JSON Structure
+
+{
+    "ecc_key": "xxxx",                    // ECC private key, DER format, Base64 encoded
+    "ecc_cert_leaf": "xxxx",             // ECC leaf certificate, DER format, Base64 encoded
+    "ecc_cert_intermediate0": "xxxx",    // ECC first intermediate certificate, DER format, Base64 encoded
+    "ecc_cert_intermediate1": "xxxx",    // ECC second intermediate certificate (optional), DER format, Base64 encoded
+    "ecc_cert_root": "xxxx",             // ECC root certificate, DER format, Base64 encoded
+    "rsa_key": "xxxx",                   // RSA private key, DER format, Base64 encoded
+    "rsa_cert_leaf": "xxxx",             // RSA leaf certificate, DER format, Base64 encoded
+    "rsa_cert_intermediate0": "xxxx",    // RSA first intermediate certificate, DER format, Base64 encoded
+    "rsa_cert_intermediate1": "xxxx",    // RSA second intermediate certificate (optional), DER format, Base64 encoded
+    "rsa_cert_root": "xxxx"              // RSA root certificate, DER format, Base64 encoded
+}
+Field Descriptions
+ECC Certificate Chain
+ecc_key: ECC private key, DER format, Base64 encoded
+ecc_cert_leaf: ECC leaf certificate, DER format, Base64 encoded
+ecc_cert_intermediate0: ECC first intermediate certificate, DER format, Base64 encoded
+ecc_cert_intermediate1: ECC second intermediate certificate (optional), DER format, Base64 encoded
+ecc_cert_root: ECC root certificate, DER format, Base64 encoded
+RSA Certificate Chain
+rsa_key: RSA private key, DER format, Base64 encoded
+rsa_cert_leaf: RSA leaf certificate, DER format, Base64 encoded
+rsa_cert_intermediate0: RSA first intermediate certificate, DER format, Base64 encoded
+rsa_cert_intermediate1: RSA second intermediate certificate (optional), DER format, Base64 encoded
+rsa_cert_root: RSA root certificate, DER format, Base64 encoded
+Important Notes
+
+All certificates and keys are stored in DER format and Base64 encoded
+The certificate chain must be complete (includes root, intermediate(s), and leaf certificates)
+The private key must match its corresponding certificate
+Up to two intermediate certificates are supported, named sequentially as intermediate0 and intermediate1
+Conversion Tool
+A Python script can be used to convert the keybox.xml format into the JSON format described above.
+The conversion script performs the following steps:
+
+Parse PEM-format certificates and keys from the keybox.xml file
+Convert PEM format to DER format
+Base64-encode the DER data
+Generate the final JSON output
+Required Python libraries for the conversion script:
+
+
+# coding=utf-8
+import sys
+import json
+import hashlib
+from cryptography.hazmat.backends import default_backend
+from cryptography.x509 import load_pem_x509_certificate
+from cryptography.hazmat.primitives import serialization
+import base64
+import xml.etree.ElementTree as ET
+
+def pem_cert_to_der_cert_base64(pem_cert):
+    try:
+        # Try to load as a certificate first
+        pub_key = load_pem_x509_certificate(pem_cert.encode(), default_backend())
+        der_certificate = pub_key.public_bytes(
+            encoding=serialization.Encoding.DER
+        )
+    except ValueError:
+        # If not a certificate, try to load as a private key
+        priv_key = serialization.load_pem_private_key(pem_cert.encode(), password=None, backend=default_backend())
+        der_certificate = priv_key.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+    return base64.b64encode(der_certificate).decode('utf-8')
+
+def generate_new_der_attest_key(root_pem_attest_key):
+    root_attest_key = root_pem_attest_key
+    new_attest_key = {}
+    ecc_key = root_attest_key["ecc_key"]
+    ecc_cert_leaf = root_attest_key["ecc_cert_leaf"]
+    new_attest_key["ecc_key"] = pem_cert_to_der_cert_base64(ecc_key)
+    new_attest_key["ecc_cert_leaf"] = pem_cert_to_der_cert_base64(ecc_cert_leaf)
+    new_attest_key["ecc_cert_root"] = pem_cert_to_der_cert_base64(root_attest_key["ecc_cert_root"])
+
+    rsa_key = root_attest_key["rsa_key"]
+    rsa_cert_leaf = root_attest_key["rsa_cert_leaf"]
+    new_attest_key["rsa_key"] = pem_cert_to_der_cert_base64(rsa_key)
+    new_attest_key["rsa_cert_leaf"] = pem_cert_to_der_cert_base64(rsa_cert_leaf)
+    new_attest_key["rsa_cert_root"] = pem_cert_to_der_cert_base64(root_attest_key["rsa_cert_root"])
+
+    atkeys = root_attest_key.keys()
+    for atkey in atkeys:
+        if atkey.startswith("ecc_cert_intermediate") or atkey.startswith("rsa_cert_intermediate"):
+            new_attest_key[atkey] = pem_cert_to_der_cert_base64(root_attest_key[atkey])
+
+    return new_attest_key
+
+def generate_key_batch(root_pem_attest_key, root_attest_key_md5, batch_size):
+    batch_keys = []
+    for _ in range(batch_size):
+        new_der_attest_key = generate_new_der_attest_key(root_pem_attest_key)
+        der_attest_key_str = json.dumps(new_der_attest_key)
+        key_md5 = hashlib.md5(der_attest_key_str.encode('utf-8')).hexdigest()
+        batch_keys.append((root_attest_key_md5, key_md5, der_attest_key_str))
+    return batch_keys
+
+
+def parse_xml_keybox(file_path):
+    tree = ET.parse(file_path)
+
+    attest_keys = {}
+
+    for keybox in tree.getroot().findall("Keybox"):
+        attest_key = {}
+        _DeviceID = keybox.get("DeviceID")
+        keys = keybox.findall("Key")
+        if len(keys) != 2:
+            print(f"wrong key {_DeviceID}")
+            continue
+        for _key in keys:
+            _key_algorithm = _key.get("algorithm")
+            _key_type = "ecc"
+            if _key_algorithm == "ecdsa":
+                _key_type = "ecc"
+            elif _key_algorithm == "rsa":
+                _key_type = "rsa"
+            else:
+                print(f"wrong key algorithm {_key_algorithm} for {_DeviceID}")
+
+            _pem_privkey = _key.find("PrivateKey").text
+            _num_certs = int(_key.find("CertificateChain").find("NumberOfCertificates").text)
+            if _num_certs < 2:
+                print(f"wrong cert {_DeviceID}")
+                break
+            _certs = _key.find("CertificateChain").findall("Certificate")
+            _leaf_pem_cert = _certs[0].text
+            _root_pem_cert = _certs[-1].text
+            attest_key[_key_type + "_key"] = _pem_privkey
+            attest_key[_key_type + "_cert_leaf"] = _leaf_pem_cert
+            attest_key[_key_type + "_cert_root"] = _root_pem_cert
+
+            intermediate_idx = 0
+            for intermediate_cert in _certs[1:-1]:
+                attest_key[_key_type + "_cert_intermediate" + str(intermediate_idx)] = intermediate_cert.text
+                intermediate_idx += 1
+        attest_keys[hashlib.md5(json.dumps(attest_key).encode('utf-8')).hexdigest()] = attest_key
+    return attest_keys
+
+if __name__ == '__main__':
+    root_attest_keys = parse_xml_keybox("keybox.xml")
+
+    for root_pem_attest_key in root_attest_keys.values():
+        new_der_attest_key = generate_new_der_attest_key(root_pem_attest_key)
+        print(json.dumps(new_der_attest_key, indent=4))
+        break
+ Prev
+Changelog

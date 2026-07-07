@@ -1,0 +1,171 @@
+VMOS Cloud API
+English
+
+Product Introduction
+Product Type
+Product Billing
+OpenAPI
+User Guide
+V2 Simplified Signature
+API Documentation
+LLMs.txt (AI Quick Reference)
+OpenAPI Spec (for AI & tools)
+Error Code
+Instance Property List
+Android device modification attribute list
+Callback Task Business Type Codes
+Changelog
+Mobile Root Certificate Format Specification
+Android SDK
+Web H5 SDK
+Windows PC SDK
+Edge-Cloud Communication Development
+Similar to XP, LSP Hook framework 
+
+Related agreements
+Properties list for virtual machine type (ro. properties that can be set)*
+
+Properties list
+
+
+{
+    // Device model, brand, fingerprint information
+    "ro.build.fingerprint" : "google/raven/raven:13/TQ1A.230105.002/9325679:user/release-keys",
+    "ro.build.description" : "raven-user 13 TQ1A.230105.002 9325679 release-keys",
+    "ro.product.brand" : "google",
+    "ro.product.model" : "raven",
+    "ro.product.manufacturer" : "google",
+    "ro.product.device" : "raven",
+    "ro.product.name" : "raven",
+    "ro.build.version.incremental" : "9325679",
+    "ro.build.flavor" : "raven-user",
+    "ro.product.board" : "raven",
+    "ro.build.product" : "raven",
+    "ro.hardware" : "raven",
+    "ro.odm.build.fingerprint" : "google/raven/raven:13/TQ1A.230105.002/9325679:user/release-keys",
+    "ro.product.build.fingerprint" : "google/raven/raven:13/TQ1A.230105.002/9325679:user/release-keys",
+    "ro.system.build.fingerprint" : "google/raven/raven:13/TQ1A.230105.002/9325679:user/release-keys",
+    "ro.system_ext.build.fingerprint" : "google/raven/raven:13/TQ1A.230105.002/9325679:user/release-keys",
+    "ro.vendor.build.fingerprint" : "google/raven/raven:13/TQ1A.230105.002/9325679:user/release-keys",
+    "ro.product.odm.device" : "raven",
+    "ro.product.odm.model" : "raven",
+    "ro.product.odm.name" : "raven",
+    "ro.product.product.device" : "raven",
+    "ro.product.product.model" : "raven",
+    "ro.product.product.name" : "raven",
+    "ro.product.system.device" : "raven",
+    "ro.product.system.model" : "raven",
+    "ro.product.system.name" : "raven",
+    "ro.product.system_ext.device" : "raven",
+    "ro.product.system_ext.model" : "raven",
+    "ro.product.system_ext.name" : "raven",
+    "ro.product.vendor.device" : "raven",
+    "ro.product.vendor.model" : "raven",
+    "ro.product.vendor.name" : "raven",
+
+    // Android ID
+    "ro.sys.cloud.android_id" : "xxxxxxxxxxxx",
+
+    // Media DRM deviceUniqueId
+    "persist.sys.cloud.drm.id" : "400079ef55a4475558eb60a05c4a4335121238f13fdd48c10026e2847a6fc7a6",
+
+    // Media DRM provisioningUniqueId (requires newer ROM version)
+    "persist.sys.cloud.drm.puid" : "3240032ec137ebb38b11bec65af4eeb13bf765ccd3f0f20318a54f3887cbd675",
+
+    // GPU information
+    "persist.sys.cloud.gpu.gl_vendor" : "my_gl_vendor",
+    "persist.sys.cloud.gpu.gl_renderer" : "my_gl_renderer",
+    "persist.sys.cloud.gpu.gl_version" : "\"OpenGL ES 3.2\"",
+
+    // SIM card information
+    // mcc mnc
+    // SIM country is set via persist.sys.cloud.mobileinfo
+    "persist.sys.cloud.mobileinfo" : "525,01",
+    // Contains language and country information (e.g. zh-CN, en-US)
+    "persist.sys.locale" : "zh-CN",
+
+    // type,mcc,mnc,tac(hex),cellid(hex),narfcn(hex),pci(hex)
+    // type:
+    // Network type, currently fixed at 9 (represents 5G)
+
+    // type,mcc,mnc,tac(16进制),cellid(16进制),narfcn(16进制),pci(16进制)
+    "persist.sys.cloud.cellinfo" : "9,525,01,2CA,E867D07,6A4,78",
+    // IMEI
+    "persist.sys.cloud.imeinum" : "759344050201724",
+    // ICCID
+    "persist.sys.cloud.iccidnum" : "68681042080146961320",
+    // IMSI
+    "persist.sys.cloud.imsinum" : "525010862935902",
+    // Phone number (must start with country code, e.g. 65 for Singapore)
+    "persist.sys.cloud.phonenum" : "6590523545",
+
+    // GPS information
+    "persist.sys.cloud.gps.lat" : "1.357703",
+    "persist.sys.cloud.gps.lon" : "103.817543",
+    "persist.sys.cloud.gps.speed" : "0.1",
+    "persist.sys.cloud.gps.altitude" : "15",
+    "persist.sys.cloud.gps.bearing" : "73",
+
+    // Battery capacity (mAh)
+    "persist.sys.cloud.battery.capacity" : "5000",
+
+    // Battery information (initial value on boot, then emulates normal charge/discharge)
+    "persist.sys.cloud.battery.level" : "80",
+
+    // Timezone
+    "persist.sys.timezone" : "Asia/Hong_Kong",
+
+    // WiFi simulation information
+    // WiFi name
+    "persist.sys.cloud.wifi.ssid" : "testwifi",
+    // WiFi MAC
+    "persist.sys.cloud.wifi.mac" : "00:02:00:00:00:00",
+    // WiFi IP
+    "persist.sys.cloud.wifi.ip" : "192.168.100.25",
+    // WiFi gateway
+    "persist.sys.cloud.wifi.gateway" : "192.168.100.1",
+    // WiFi DNS1
+    "persist.sys.cloud.wifi.dns1" : "192.168.100.1",
+    // WiFi default name
+    "persist.sys.cloud.wifi.ssid" : "wifiName",
+
+    // App install source
+    "persist.sys.cloud.pm.install_source" : "com.android.vending",
+
+    // Boot time offset (seconds)
+    "persist.sys.cloud.boottime.offset"  :  "3",
+
+    // Network proxy settings (effective on boot, no extra configuration needed)
+    // Proxy type: socks5, http-relay
+    "ro.sys.cloud.proxy.type" : "socks5",
+    // Proxy configuration: IP|port|username|password|true(enable)
+    "ro.sys.cloud.proxy.data" : "134.81.40.147|54212|username|password|true",
+    // Proxy mode
+    // proxy → uses system iptables
+    // vpn   → uses Android VPN service (supports DNS leak protection)
+    "ro.sys.cloud.proxy.mode" : "proxy",
+
+    // Number of DNS servers (1 or 2)
+    "ro.boot.redroid_net_ndns" : "2",
+    // First DNS
+    "ro.boot.redroid_net_dns1" : "8.8.8.8",
+    // Second DNS
+    "ro.boot.redroid_net_dns2" : "8.8.4.4",
+
+    "ro.sys.cloud.proxy.byPassPackageNameNum"  :  "1",
+    "ro.sys.cloud.proxy.byPassPackageName1" :  "package1,package2",
+
+    "ro.sys.cloud.proxy.byPassIpNameNum"  :  "1",
+    "ro.sys.cloud.proxy.byPassIpName1" :  "ip1,ip2",
+
+    "ro.sys.cloud.proxy.byByPassDomainNum"  :  "1",
+    "ro.sys.cloud.proxy.byByPassDomain1" :  "domain1,domain2",
+
+    "ro.sys.cloud.rand_pics" : "3", // Randomly generate 3 pictures in gallery on first boot
+
+    "ro.sys.cloud.boot_id" : "1b9d92ee76f34825a8bdff42335f46ec"  // /proc/sys/kernel/random/boot_id
+}
+ Prev
+Instance Property List
+Next 
+Callback Task Business Type Codes

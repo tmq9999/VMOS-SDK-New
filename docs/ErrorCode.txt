@@ -1,0 +1,58 @@
+VMOS Cloud API
+English
+
+Product Introduction
+Product Type
+Product Billing
+OpenAPI
+User Guide
+V2 Simplified Signature
+API Documentation
+LLMs.txt (AI Quick Reference)
+OpenAPI Spec (for AI & tools)
+Error Code
+Instance Property List
+Android device modification attribute list
+Callback Task Business Type Codes
+Changelog
+Mobile Root Certificate Format Specification
+Android SDK
+Web H5 SDK
+Windows PC SDK
+Edge-Cloud Communication Development
+Similar to XP, LSP Hook framework 
+
+Related agreements
+System error code description
+Error codes that may be returned by the interface and corresponding solutions:
+
+code	msg	solution
+2031	Invalid key	Invalid key
+2032	Required parameter missing in request header: Authorization	Required parameter missing in request header: Authorization
+2019	Signature verification failed	Signature verification failed
+1104	Required parameter is empty	Please check whether the parameter meets the requirements
+2020	Instance does not exist	Instance does not exist
+100000	Incorrect request parameters	Please check whether the parameters meet the requirements
+100001	No access rights	Contact the administrator to open permissions
+100002	Unable to obtain HttpServlet request object	Confirm whether the request method and parameters are correct
+100003	Missing request header Authorization	Check whether the request header contains Authorization
+100004	Invalid signature	Please check whether the signature is correct
+100005	Signature verification failed	Confirm that the signature method is correct
+100006	Request lacks token	Confirm whether the token is correctly passed
+100007	Invalid token	Check whether the token is expired
+100008	token Verification failed	Confirm token validity
+100009	Account information missing	Check parameters, refer to call example
+100010	Processing failed	Retry, if multiple failures occur, please contact the administrator
+100011	The same request is in progress	Try again later
+100012	Unsupported HTTP request method	Confirm supported request types
+100013	Parameter type and format errors	Please check parameter format
+110014	Submissions too frequently	Try again later
+120006	Token bound uuid does not match	Please check parameters
+120007	The interface does not support this function	Contact the administrator
+120008	Token does not belong to the current user	Confirm token ownership
+110013	Instance does not exist	Please check instance parameters
+110031	Instance is not ready	Wait for the instance to be in Ready state
+ Prev
+OpenAPI Spec (for AI & tools)
+Next 
+Instance Property List

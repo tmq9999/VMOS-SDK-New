@@ -1,0 +1,344 @@
+﻿# VMOSCloud OpenAPI Developer Quick Reference
+
+For AI/LLM/code assistants. Full request/response params and examples see OpenAPI.md, auth and signing see example.md.
+
+## Authentication
+HMAC-SHA256 signature verification (required)
+
+Request headers (required per request):
+- x-date: Request UTC time, ISO 8601 format (e.g. 20240301T093700Z)
+- x-host: API host (api.vmoscloud.com)
+- Content-Type: application/json
+- authorization: HMAC-SHA256 signature
+
+Signature format:
+HMAC-SHA256 Credential={AccessKey}, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature={Signature}
+
+Signature steps and examples see Getting Started example.md
+
+## Base Information
+Base URL: https://api.vmoscloud.com
+Path prefix: /vcpcloud/api/padApi/
+Response format: JSON {code, msg, ts, data}
+Success code: code=200
+
+## API List
+
+### 1. Instance Management
+POST  /vcpcloud/api/padApi/setWifiList - Modify instance WIFI properties
+  Params: padCodes[], wifiJsonList[], SSID, BSSID, MAC, IP, gateway, DNS1, DNS2, hessid, anqpDomainId, capabilities, level, linkSpeed, txLinkSpeed, rxLinkSpeed, frequency, distance, distanceSd, channelWidth
+POST  /vcpcloud/api/padApi/padDetails - Instance details (pending)
+POST  /vcpcloud/api/padApi/restart - Instance restart
+  Params: padCodes[]
+POST  /vcpcloud/api/padApi/reset - Instance reset
+  Params: padCodes[]
+POST  /vcpcloud/api/padApi/padProperties - Query instance properties
+  Params: padCode
+POST  /vcpcloud/api/padApi/batchPadProperties - Batch query instance properties
+  Params: padCodes[]
+POST  /vcpcloud/api/padApi/updatePadProperties - Modify instance properties (dynamic)
+  Params: padCodes[], modemPersistPropertiesList[], propertiesName, propertiesValue, modemPropertiesList[], systemPersistPropertiesList[], systemPropertiesList[], settingPropertiesList[], oaidPropertiesList[]
+POST  /vcpcloud/api/padApi/updatePadAndroidProp - Modify instance Android modification props (restart required)
+  Params: padCode, restart, props, ro.product.vendor.name
+POST  /vcpcloud/api/padApi/updateSIM - Modify SIM by country code
+  Params: padCode, countryCode, props, ro.product.vendor.name
+POST  /vcpcloud/api/padApi/dissolveRoom - Stop streaming
+  Params: padCodes[]
+POST  /vcpcloud/api/padApi/checkIP - Smart IP proxy detection
+  Params: host, port, account, password, type, country, ip, loc, city, region, timezone
+POST  /vcpcloud/api/padApi/smartIp - Set smart IP
+  Params: padCodes[], host, port, account, password, type, mode, bypassPackageList[], bypassIpList[], bypassDomainList[], followLanguage
+POST  /vcpcloud/api/padApi/notSmartIp - Cancel smart IP
+  Params: padCodes[]
+POST  /vcpcloud/api/padApi/getTaskStatus - Device task result query (smart IP)
+  Params: taskId
+POST  /vcpcloud/api/padApi/getListInstalledApp - Get installed apps for specified instances
+  Params: padCodeList[]
+POST  /vcpcloud/api/padApi/updateTimeZone - Modify instance timezone
+  Params: timeZone, padCodes[]
+POST  /vcpcloud/api/padApi/updateLanguage - Modify instance language
+  Params: language, country, padCodes[]
+POST  /vcpcloud/api/padApi/gpsInjectInfo - Set instance GPS
+  Params: longitude, latitude, altitude, speed, bearing, horizontalAccuracyMeters, padCodes[]
+POST  /vcpcloud/open/network/proxy/info - Query instance proxy info (pending)
+  Params: padCodes[], padCode
+POST  /vcpcloud/api/padApi/replacePad - One-key new device
+  Params: padCodes[], countryCode, realPhoneTemplateId, androidProp, replacementRealAdiFlag, excludeRealPhoneTemplateIds[], certificate, wipeData, wipeSpecificData[]
+GET  /vcpcloud/api/padApi/country - Query one-key new device supported countries
+  Params: None
+POST  /vcpcloud/api/padApi/webview/version/list - Query available WebView versions
+  Params: None
+POST  /vcpcloud/api/padApi/updateContacts - Update contacts
+  Params: padCodes[], fileUniqueId, operateType, info[], firstName, phone, email
+POST  /vcpcloud/api/padApi/setProxy - Set instance proxy
+  Params: account, password, ip, port, enable, padCodes[], proxyType, proxyName, model, bypassPackageList[], bypassIpList[], bypassDomainList[], limitPackageList[], limitIpList[], limitDomainList[], sUoT
+POST  /vcpcloud/api/padApi/listInstalledApp - Real-time query installed app list
+  Params: padCodes[], appName
+POST  /vcpcloud/api/padApi/setKeepAliveApp - Set app keep-alive
+  Params: padCodes[], applyAllInstances, appInfos[], serverName
+POST  /vcpcloud/api/padApi/setHideAppList - Set app hide (pending)
+  Params: padCodes[], appInfos[], packageName
+POST  /vcpcloud/api/padApi/replaceRealAdiTemplate - Modify real device ADI template
+  Params: padCodes[], wipeData, realPhoneTemplateId
+POST  /vcpcloud/api/padApi/asyncCmd - Async execute ADB command
+  Params: padCodes[], scriptContent
+POST  /vcpcloud/api/padApi/switchRoot - Switch Root permission
+  Params: padCodes[], globalRoot, packageName, rootStatus
+POST  /vcpcloud/api/padApi/screenshot - Local screenshot
+  Params: padCodes[], rotation, broadcast, definition, resolutionHeight, resolutionWidth
+POST  /vcpcloud/api/padApi/getLongGenerateUrl - Get instance real-time preview image
+  Params: padCodes[], format, height, width, quality
+POST  /vcpcloud/api/padApi/upgradeImage - Upgrade image
+  Params: padCodes[], imageId, wipeData, enableCpuCoreConfig
+POST  /vcpcloud/api/padApi/virtualRealSwitch - Upgrade real device image
+  Params: padCodes[], imageId, wipeData, realPhoneTemplateId, upgradeImageConvertType, screenLayoutId, certificate, deviceAndroidProps, enableCpuCoreConfig
+POST  /vcpcloud/api/padApi/templateList - Paginated get real device templates
+  Params: page, rows
+POST  /vcpcloud/api/padApi/modelInfo - Batch get instance model info (pending)
+  Params: padCodes[]
+POST  /vcpcloud/api/padApi/setSpeed - Set instance bandwidth (pending)
+  Params: padCodes[], upBandwidth, downBandwidth
+POST  /vcpcloud/api/padApi/openOnlineAdb - Enable/disable ADB
+  Params: padCodes[], openStatus
+POST  /vcpcloud/api/padApi/adb - Get ADB connection info
+  Params: padCode, enable, expireMinutes
+POST  /vcpcloud/api/padApi/batch/adb - Batch get ADB connection info (pending)
+  Params: padCodes[], enable
+POST  /vcpcloud/api/padApi/simulateTouch - Simulate touch
+  Params: padCodes[], width, height, pointCount, positions[]
+POST  /vcpcloud/api/padApi/padTaskDetail - Instance operation task details
+  Params: taskIds[], taskId
+POST  /vcpcloud/api/padApi/executeScriptInfo - Get instance script execution result (pending)
+  Params: taskIds
+POST  /vcpcloud/api/padApi/screenshotInfo - Get instance screenshot result (pending)
+  Params: taskIds
+POST  /vcpcloud/api/padApi/padExecuteTaskInfo - Instance restart/reset execution result (pending)
+  Params: taskIds
+POST  /vcpcloud/api/padApi/infos - Instance group list / instance list info
+  Params: page, rows, padType, padCodes[]
+POST  /vcpcloud/api/padApi/addPhoneRecord - Import call records
+  Params: padCodes[], callRecords[]
+POST  /vcpcloud/api/padApi/inputText - Cloud phone text input
+  Params: padCodes[], text, code, msg, ts, data[], padCode, taskId, vmStatus, taskStatus
+POST  /vcpcloud/api/padApi/simulateSendSms - Simulate send SMS
+  Params: padCodes[], senderNumber, smsContent
+POST  /vcpcloud/api/padApi/resetGAID - Reset GAID
+  Params: padCodes[], resetGmsType, oprBy, taskSource
+POST  /vcpcloud/api/padApi/injectAudioToMic - Inject audio to instance microphone
+  Params: padCodes[], url, fileUniqueId, enable
+POST  /vcpcloud/api/padApi/cleanAppHome - Clear processes and return to desktop (pending)
+  Params: padCodes[]
+POST  /vcpcloud/api/padApi/unmannedLive - Unmanned live streaming
+  Params: padCodes[], injectSwitch, injectLoop, injectUrl, injectUrls[]
+POST  /vcpcloud/api/padApi/injectPicture - Image injection (pending)
+  Params: padCodes[], injectSwitch, injectLoop, injectUrl
+POST  /vcpcloud/api/padApi/addUserRom - Upload user image
+  Params: name, updateLog, androidVersion, version, downloadUrl, packageSize
+POST  /vcpcloud/api/padApi/replacement - Device replacement
+  Params: padCode
+POST  /vcpcloud/api/padApi/confirmTransfer - Transfer cloud phone
+  Params: padCodes[], makeOverMobilePhone
+POST  /vcpcloud/api/padApi/setHideAccessibilityAppList - Hide accessibility service
+  Params: padCodes[], appInfos[], packageName
+
+### 2. Resource Management
+POST  /vcpcloud/api/padApi/infos - Instance list info (paginated query ordered instances)
+  Params: page, rows, padType, padCodes[]
+
+### 3. Application Management
+POST  /vcpcloud/api/padApi/uninstallApp - Uninstall app
+  Params: apkPackageList[], padCodeList[]
+POST  /vcpcloud/api/padApi/startApp - Start app
+  Params: pkgName, padCodes[]
+POST  /vcpcloud/api/padApi/stopApp - Stop app
+  Params: pkgName, padCodes[]
+POST  /vcpcloud/api/padApi/restartApp - Restart app
+  Params: pkgName, padCodes[]
+POST  /vcpcloud/api/padApi/listInstalledApp - Instance installed app list query
+  Params: padCodes[], appName
+POST  /vcpcloud/api/padApi/uploadFileV3 - Upload file via URL
+  Params: padCodes[], padCode, autoInstall, fileUniqueId, customizeFilePath, fileName, packageName, url, md5, isAuthorization, iconPath
+POST  /vcpcloud/api/padApi/uploadFile - Upload file to cloud storage
+  Params: file
+POST  /vcpcloud/api/padApi/deleteOssFiles - Delete cloud storage files
+  Params: files[], urls[]
+POST  /vcpcloud/api/padApi/selectFiles - Query user file list
+  Params: None
+
+### 4. Task Management
+POST  /vcpcloud/api/padApi/padTaskDetail - Instance operation task details
+  Params: taskIds[], taskId
+POST  /vcpcloud/api/padApi/fileTaskDetail - File task details
+  Params: taskIds[], taskId
+
+### 5. Cloud Phone Management
+POST  /vcpcloud/api/padApi/createMoneyOrder - Create/renew cloud phone
+  Params: androidVersionName, goodId, goodNum, autoRenew, equipmentId, countryCode
+POST  /vcpcloud/api/padApi/userPadList - Cloud phone list
+  Params: padCode, equipmentIds[]
+POST  /vcpcloud/api/padApi/padInfo - Cloud phone info query
+  Params: padCode
+GET  /vcpcloud/api/padApi/getCloudGoodList - SKU package list
+  Params: androidVersion, goodIds
+POST  /vcpcloud/api/padApi/createMoneyProOrder - Device presale purchase
+  Params: androidVersionName, goodId, goodNum, autoRenew, countryCode
+POST  /vcpcloud/api/padApi/queryProOrderList - Query presale order result details
+  Params: proBuyStatus, orderId
+POST  /vcpcloud/api/padApi/imageVersionList - Android image version list
+  Params: padCode
+POST  /vcpcloud/api/padApi/createByTimingOrder - Create timing device order
+  Params: goodId, goodNum
+POST  /vcpcloud/api/padApi/timingPadOn - Timing device power on
+  Params: padCodes[], defCode, netStorageResUnitCode
+POST  /vcpcloud/api/padApi/timingPadOff - Timing device power off
+  Params: padCodes[], isBackUp, remark
+POST  /vcpcloud/api/padApi/timingPadDel - Timing device destroy
+  Params: padCodes[]
+GET  /vcpcloud/api/padApi/vcTimingBackupList - Storage resource package list
+  Params: None
+GET  /vcpcloud/api/padApi/getRenewStorageInfo - Cloud storage remaining capacity
+  Params: None
+GET  /vcpcloud/api/padApi/getVcStorageGoods - Cloud storage product list
+  Params: None
+POST  /vcpcloud/api/padApi/buyStorageGoods - Purchase cloud storage expansion
+  Params: storageId, autoRenewOrder
+GET  /vcpcloud/api/padApi/selectAutoRenew - Cloud storage renewal details query
+  Params: None
+POST  /vcpcloud/api/padApi/renewsStorageGoods - Aggregate renew cloud storage products
+  Params: autoRenewOrder
+GET  /vcpcloud/api/padApi/updateRenewStorageStatus - Cloud storage auto-renewal switch
+  Params: renewStorageStatus
+POST  /vcpcloud/api/padApi/deleteUploadFiles - Delete backup resource package data
+  Params: backupIds[]
+POST  /vcpcloud/api/padApi/toggleProcessHide - Show or hide app process
+  Params: padCodes[], show, packageName
+
+### 6. Email Verification Service
+GET  /vcpcloud/api/padApi/getEmailServiceList - Get email service list
+  Params: None
+GET  /vcpcloud/api/padApi/getEmailTypeList - Get email type and remaining stock
+  Params: serviceId
+POST  /vcpcloud/api/padApi/createEmailOrder - Create email order
+  Params: serviceId, emailTypeId, goodNum
+GET  /vcpcloud/api/padApi/getEmailOrder - Query purchased email list
+  Params: page, size, serviceId, email, status
+GET  /vcpcloud/api/padApi/getEmailCode - Refresh get email verification code
+  Params: orderId
+
+### 7. Dynamic Proxy Service
+GET  /vcpcloud/api/padApi/getDynamicGoodService - Query dynamic proxy product list
+  Params: None
+GET  /vcpcloud/api/padApi/getDynamicProxyRegion - Query dynamic proxy region list
+  Params: None
+GET  /vcpcloud/api/padApi/queryCurrentTrafficBalance - Get dynamic proxy current balance
+  Params: None
+GET  /vcpcloud/api/padApi/getDynamicProxyHost - Query supported server regions
+  Params: None
+POST  /vcpcloud/api/padApi/buyDynamicProxy - Purchase dynamic proxy traffic package
+  Params: goodId, goodNum, autoRenewOrder
+POST  /vcpcloud/api/padApi/createProxy - Create dynamic proxy
+  Params: city, countryCode, goodNum, proxyHost, proxyType, proxyUseType, state, time
+GET  /vcpcloud/api/padApi/getProxys - Query dynamic proxy list
+  Params: page, rows
+POST  /vcpcloud/api/padApi/getDynamicProxyOrders - Query dynamic proxy order list
+  Params: page, rows, completeStartTime, completeEndTime
+POST  /vcpcloud/api/padApi/batchPadConfigProxy - Configure dynamic proxy for instances
+  Params: padCodes[], setProxyFlag, proxyIds[]
+POST  /vcpcloud/api/padApi/selectBatchPadProxyTask - Query batch instance set proxy task
+  Params: taskId
+GET  /vcpcloud/api/padApi/getDynamicProxyAutomaticRenewal - Query dynamic proxy auto-renewal info
+  Params: None
+POST  /vcpcloud/api/padApi/setAutoRenewSwitch - Set dynamic proxy auto-renewal switch
+  Params: autoRenewOrder
+POST  /vcpcloud/api/padApi/delProxyByIds - Delete dynamic proxy
+  Params: ids[]
+
+### 8. Static Residential Proxy Service
+GET  /vcpcloud/api/padApi/proxyGoodList - Get static residential product list
+  Params: None
+GET  /vcpcloud/api/padApi/getProxyRegion - Get static residential supported countries/cities
+  Params: None
+POST  /vcpcloud/api/padApi/createProxyOrder - Static residential product purchase
+  Params: proxyGoodId, region, num, country, proxyAddress, autoRenew
+POST  /vcpcloud/api/padApi/selectProxyOrderList - Static residential proxy order details
+  Params: page, rows
+POST  /vcpcloud/api/padApi/createRenewProxyOrder - Static residential proxy renewal
+  Params: proxyGoodId, proxyIps, autoRenew
+POST  /vcpcloud/api/padApi/queryProxyList - Query static residential proxy list
+  Params: current, size
+
+### 9. SDK Token
+POST  /vcpcloud/api/padApi/stsTokenByPadCode - Get SDK temporary token by padCode
+  Params: padCode
+GET  /vcpcloud/api/padApi/getSessionToken - Get group control session token
+POST  /vcpcloud/api/padApi/clearStsToken - Clear SDK authorization token
+  Params: token
+
+## Callback Events
+
+999 - Instance status callback
+1000 - Instance restart task
+1001 - Instance reset task
+1002 - Async ADB task
+1003 - App install task
+1004 - App uninstall task
+1005 - App stop task
+1006 - App restart task
+1007 - App start task
+1009 - Instance file upload task
+1012 - Instance upgrade image task
+1124 - One-key new device
+4001 - User image upload
+
+Details and examples see callback.md
+
+## Common Error Codes
+
+200 - Success
+2031 - Invalid key
+2032 - Missing Authorization header
+2019 - Signature verification failed
+100000 - Invalid request parameters
+100003 - Missing Authorization header
+100004 - Invalid signature
+100005 - Signature verification failed
+110028 - Instance not found
+110013 - Instance not found
+110031 - Instance not ready
+120008 - Token not owned by current user
+
+More error codes see ErrorCode.md
+
+## Usage Tips
+
+1. Auth security
+   - Keep AK/SK secure, do not hardcode in client
+   - Rotate keys periodically
+
+2. Async tasks
+   - Restart, reset, install, upload etc. are async
+   - Configure callback or poll task detail API for result
+
+3. Batch limits
+   - Batch APIs have limits (e.g. 200 instances)
+   - Batch requests and handle failure list
+
+4. Instance state
+   - Some operations require instance online/ready
+   - Check instance state before calling
+
+5. Modification props and restart
+   - Modifying Android modification props, SIM etc. requires restart
+   - Differs from "modify instance properties" (dynamic)
+
+## Related Docs
+- Full API doc: OpenAPI.md
+- Auth and signing: example.md
+- Error codes: ErrorCode.md
+- Callback types and examples: callback.md
+- Instance list fields: InstanceList.md
+- Android modification props: InstanceAndroidPropList.md
+
+---
+Doc version: Quick reference
+Content subject to OpenAPI.md

@@ -1,0 +1,5191 @@
+﻿openapi: 3.1.0
+info:
+  title: VMOSCloud OpenAPI
+  description: |
+    VMOSCloud server OpenAPI spec for AI/LLM/code assistants and tools.
+    API descriptions and request/response params match OpenAPI.md.
+    Auth and signing see Getting Started example.md.
+  version: "1.0.0"
+
+servers:
+  - url: https://api.vmoscloud.com
+    description: VMOSCloud API server
+
+security:
+  - VMOSCloudHMAC: []
+
+tags:
+  - name: Instance Management
+  - name: Resource Management
+  - name: Application Management
+  - name: Task Management
+  - name: Cloud Phone Management
+  - name: Email Verification Service
+  - name: Dynamic Proxy Service
+  - name: Static Residential Proxy Service
+  - name: SDK Token
+
+paths:
+  /vcpcloud/api/padApi/setWifiList:
+    post:
+      tags:
+        - Instance Management
+      summary: Modify instance WIFI properties
+      operationId: vcpcloud_api_padApi_setWifiList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - wifiJsonList
+                - SSID
+                - BSSID
+                - MAC
+                - IP
+                - gateway
+                - DNS1
+                - DNS2
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编号
+                wifiJsonList:
+                  type: array
+                  items:
+                    type: string
+                  description: wifi属性列表
+                SSID:
+                  type: string
+                  description: wifi名称 (不支持中文)
+                BSSID:
+                  type: string
+                  description: 接入点mac地址
+                MAC:
+                  type: string
+                  description: wifi网卡mac地址
+                IP:
+                  type: string
+                  description: wifi网络IP
+                gateway:
+                  type: string
+                  description: wifi网关
+                DNS1:
+                  type: string
+                  description: DNS1
+                DNS2:
+                  type: string
+                  description: DNS2
+                hessid:
+                  type: integer
+                  description: 网络标识符
+                anqpDomainId:
+                  type: integer
+                  description: ANQP（Access Network Query Protocol）域ID
+                capabilities:
+                  type: string
+                  description: WPA/WPA2等信息
+                level:
+                  type: integer
+                  description: 信号强度（RSSI）
+                linkSpeed:
+                  type: integer
+                  description: 当前Wi-Fi连接速率
+                txLinkSpeed:
+                  type: integer
+                  description: 上传链路速度
+                rxLinkSpeed:
+                  type: integer
+                  description: 下载链路速度
+                frequency:
+                  type: integer
+                  description: Wi-Fi信道频率
+                distance:
+                  type: integer
+                  description: 估算的AP距离
+                distanceSd:
+                  type: integer
+                  description: 估算距离的标准差
+                channelWidth:
+                  type: integer
+                  description: 信道带宽
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/padDetails:
+    post:
+      tags:
+        - Instance Management
+      summary: Instance details (pending)
+      operationId: vcpcloud_api_padApi_padDetails_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/restart:
+    post:
+      tags:
+        - Instance Management
+      summary: Instance restart
+      operationId: vcpcloud_api_padApi_restart_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/reset:
+    post:
+      tags:
+        - Instance Management
+      summary: Instance reset
+      operationId: vcpcloud_api_padApi_reset_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/padProperties:
+    post:
+      tags:
+        - Instance Management
+      summary: Query instance properties
+      operationId: vcpcloud_api_padApi_padProperties_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCode
+              properties:
+                padCode:
+                  type: string
+                  description: 实例编号
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          modemPropertiesList:
+                            type: array
+                            items:
+                              type: object
+                            description: Modem-属性列表
+                          propertiesName:
+                            type: string
+                            description: 属性名称
+                          propertiesValue:
+                            type: string
+                            description: 属性值
+                          systemPropertiesList:
+                            type: array
+                            items:
+                              type: object
+                            description: 系统-属性列表
+                          settingPropertiesList:
+                            type: array
+                            items:
+                              type: object
+                            description: setting-属性列表
+                          oaidPropertiesList:
+                            type: array
+                            items:
+                              type: object
+                            description: oaid-属性列表
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/batchPadProperties:
+    post:
+      tags:
+        - Instance Management
+      summary: Batch query instance properties
+      operationId: vcpcloud_api_padApi_batchPadProperties_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例数量不多余200个
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          modemPropertiesList:
+                            type: array
+                            items:
+                              type: object
+                            description: Modem-属性列表
+                          propertiesName:
+                            type: string
+                            description: 属性名称
+                          propertiesValue:
+                            type: string
+                            description: 属性值
+                          systemPropertiesList:
+                            type: array
+                            items:
+                              type: object
+                            description: 系统-属性列表
+                          settingPropertiesList:
+                            type: array
+                            items:
+                              type: object
+                            description: setting-属性列表
+                          oaidPropertiesList:
+                            type: array
+                            items:
+                              type: object
+                            description: oaid-属性列表
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/updatePadProperties:
+    post:
+      tags:
+        - Instance Management
+      summary: Modify instance properties (dynamic)
+      operationId: vcpcloud_api_padApi_updatePadProperties_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                modemPersistPropertiesList:
+                  type: array
+                  items:
+                    type: string
+                  description: Modem-持久化-属性列表
+                propertiesName:
+                  type: string
+                  description: 属性名称
+                propertiesValue:
+                  type: string
+                  description: 属性值
+                modemPropertiesList:
+                  type: array
+                  items:
+                    type: string
+                  description: Modem-非持久化-属性列表
+                systemPersistPropertiesList:
+                  type: array
+                  items:
+                    type: string
+                  description: 系统-持久化-属性列表
+                systemPropertiesList:
+                  type: array
+                  items:
+                    type: string
+                  description: 系统-非持久化-属性列表
+                settingPropertiesList:
+                  type: array
+                  items:
+                    type: string
+                  description: setting-属性列表
+                oaidPropertiesList:
+                  type: array
+                  items:
+                    type: string
+                  description: oaid-属性列表
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/updatePadAndroidProp:
+    post:
+      tags:
+        - Instance Management
+      summary: Modify instance Android modification props (restart required)
+      operationId: vcpcloud_api_padApi_updatePadAndroidProp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - props
+                - ro.product.vendor.name
+              properties:
+                padCode:
+                  type: string
+                  description: 实例id
+                restart:
+                  type: boolean
+                  description: 设置完成后自动重启（默认false）
+                props:
+                  type: object
+                  description: 系统属性（此字段为key-value定义）
+                ro.product.vendor.name:
+                  type: string
+                  description: 属性设置
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          padCode:
+                            type: string
+                            description: 实例id
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/updateSIM:
+    post:
+      tags:
+        - Instance Management
+      summary: Modify SIM by country code
+      operationId: vcpcloud_api_padApi_updateSIM_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCode
+              properties:
+                padCode:
+                  type: string
+                  description: 实例id
+                countryCode:
+                  type: string
+                  description: 国家code
+                props:
+                  type: object
+                  description: 系统属性（此字段为key-value定义）
+                ro.product.vendor.name:
+                  type: string
+                  description: 属性设置
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/dissolveRoom:
+    post:
+      tags:
+        - Instance Management
+      summary: Stop streaming
+      operationId: vcpcloud_api_padApi_dissolveRoom_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          successList:
+                            type: array
+                            items:
+                              type: object
+                            description: 成功集合
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          failList:
+                            type: array
+                            items:
+                              type: object
+                            description: 失败集合
+                          errorCode:
+                            type: integer
+                            description: 错误码
+                          errorMsg:
+                            type: string
+                            description: 失败的原因
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/checkIP:
+    post:
+      tags:
+        - Instance Management
+      summary: Smart IP proxy detection
+      operationId: vcpcloud_api_padApi_checkIP_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - host
+                - port
+                - account
+                - password
+                - type
+              properties:
+                host:
+                  type: string
+                  description: 代理信息 (ip或host)
+                port:
+                  type: integer
+                  description: 代理端口 (数字类型)
+                account:
+                  type: string
+                  description: 代理用户名
+                password:
+                  type: string
+                  description: 代理密码
+                type:
+                  type: string
+                  description: 代理协议类型 Socks5、 http、https
+                country:
+                  type: string
+                  description: "国家-强行指定时必填 - 参数请参考：curl -x http://用户名:密码@ip:端口 https://ipinfo.io?token=注册就有的token 当使用了强行指定后，系统会直接使用指"
+                ip:
+                  type: string
+                  description: ip-强行指定时必填
+                loc:
+                  type: string
+                  description: 经，纬度-强行指定时必填
+                city:
+                  type: string
+                  description: 城市-强行指定时必填
+                region:
+                  type: string
+                  description: 地区-强行指定时必填
+                timezone:
+                  type: string
+                  description: 时区-强行指定时必填
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          proxyLocation:
+                            type: string
+                            description: 归属地
+                          publicIp:
+                            type: string
+                            description: 出口IP
+                          proxyWorking:
+                            type: boolean
+                            description: 检测成功-true 检测失败-false
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/smartIp:
+    post:
+      tags:
+        - Instance Management
+      summary: Set smart IP
+      operationId: vcpcloud_api_padApi_smartIp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - host
+                - port
+                - account
+                - password
+                - type
+                - mode
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                host:
+                  type: string
+                  description: 代理信息 (ip或host)
+                port:
+                  type: integer
+                  description: 代理端口 (数字类型)
+                account:
+                  type: string
+                  description: 代理用户名
+                password:
+                  type: string
+                  description: 代理密码
+                type:
+                  type: string
+                  description: 代理协议类型 socks5、 http、https
+                mode:
+                  type: string
+                  description: 设置代理的模式 vpn / proxy
+                bypassPackageList:
+                  type: array
+                  items:
+                    type: string
+                  description: 包名 设置该包名不走代理
+                bypassIpList:
+                  type: array
+                  items:
+                    type: string
+                  description: ip 设置该ip不走代理
+                bypassDomainList:
+                  type: array
+                  items:
+                    type: string
+                  description: 域名 设置该域名不走代理
+                followLanguage:
+                  type: boolean
+                  description: 是否跟随代理IP自动切换云机语言
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/notSmartIp:
+    post:
+      tags:
+        - Instance Management
+      summary: Cancel smart IP
+      operationId: vcpcloud_api_padApi_notSmartIp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getTaskStatus:
+    post:
+      tags:
+        - Instance Management
+      summary: Device task result query (smart IP)
+      operationId: vcpcloud_api_padApi_getTaskStatus_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskId
+              properties:
+                taskId:
+                  type: string
+                  description: 任务ID
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskStatus:
+                            type: string
+                            description: 任务状态：Executing-执行中 Successfully-已成功 Failed-已失败 Timedout-已超时
+                          taskType:
+                            type: integer
+                            description: 任务类型：10010-设置智能IP 10011-取消智能IP
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getListInstalledApp:
+    post:
+      tags:
+        - Instance Management
+      summary: Get installed apps for specified instances
+      operationId: vcpcloud_api_padApi_getListInstalledApp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodeList
+              properties:
+                padCodeList:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          appName:
+                            type: string
+                            description: APP名称
+                          packageName:
+                            type: string
+                            description: APP包名
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/updateTimeZone:
+    post:
+      tags:
+        - Instance Management
+      summary: Modify instance timezone
+      operationId: vcpcloud_api_padApi_updateTimeZone_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - timeZone
+                - padCodes
+              properties:
+                timeZone:
+                  type: string
+                  description: UTC标准时间
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例列表
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 房间号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/updateLanguage:
+    post:
+      tags:
+        - Instance Management
+      summary: Modify instance language
+      operationId: vcpcloud_api_padApi_updateLanguage_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - language
+                - padCodes
+              properties:
+                language:
+                  type: string
+                  description: 语言
+                country:
+                  type: string
+                  description: 国家
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例列表
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 房间号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/gpsInjectInfo:
+    post:
+      tags:
+        - Instance Management
+      summary: Set instance GPS
+      operationId: vcpcloud_api_padApi_gpsInjectInfo_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - longitude
+                - latitude
+                - padCodes
+              properties:
+                longitude:
+                  type: string
+                  description: 经度
+                latitude:
+                  type: string
+                  description: 纬度
+                altitude:
+                  type: string
+                  description: 海拔 (需要更新到最新镜像)
+                speed:
+                  type: string
+                  description: 速度，m/s (20251024之后的镜像)
+                bearing:
+                  type: string
+                  description: 速度方向，° (20251024之后的镜像)
+                horizontalAccuracyMeters:
+                  type: string
+                  description: 水平精度 (20251024之后的镜像)
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例列表
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/open/network/proxy/info:
+    post:
+      tags:
+        - Instance Management
+      summary: Query instance proxy info (pending)
+      operationId: vcpcloud_open_network_proxy_info_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例列表
+                padCode:
+                  type: string
+                  description: 实例编号
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 房间号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/replacePad:
+    post:
+      tags:
+        - Instance Management
+      summary: One-key new device
+      operationId: vcpcloud_api_padApi_replacePad_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例id列表
+                countryCode:
+                  type: string
+                  description: "国家编码(具体查看:https://chahuo.com/country-code-lookup.html)"
+                realPhoneTemplateId:
+                  type: integer
+                  description: "模板id参考 [分页获取真机模板](https://cloud.vmoscloud.com/vmoscloud/doc/zh/server/OpenAPI.html#分页获取真机模板)"
+                androidProp:
+                  type: object
+                  description: "参考 [安卓改机属性列表](https://cloud.vmoscloud.com/vmoscloud/doc/zh/server/InstanceAndroidPropList.html)"
+                replacementRealAdiFlag:
+                  type: boolean
+                  description: 真机是否随机adi模板(false 不随机 true 随机)
+                excludeRealPhoneTemplateIds:
+                  type: integer
+                  items:
+                    type: string
+                  description: 随机ADI模板时需排除的模板ID列表
+                certificate:
+                  type: string
+                  description: 手机根证书
+                wipeData:
+                  type: boolean
+                  description: 是否清除用户数据，默认true(CBS2.4.4以上版本支持)
+                wipeSpecificData:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/country:
+    get:
+      tags:
+        - Instance Management
+      summary: Query one-key new device supported countries
+      operationId: vcpcloud_api_padApi_country_get
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/webview/version/list:
+    post:
+      tags:
+        - Instance Management
+      summary: Query available WebView versions
+      operationId: vcpcloud_api_padApi_webview_version_list_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          id:
+                            type: integer
+                            description: 版本ID
+                          version:
+                            type: string
+                            description: WebView版本号
+                          ossUrl:
+                            type: string
+                            description: 安装包下载地址
+                          fileMd5:
+                            type: string
+                            description: 安装包文件MD5
+                          description:
+                            type: string
+                            description: 版本说明
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/updateContacts:
+    post:
+      tags:
+        - Instance Management
+      summary: Update contacts
+      operationId: vcpcloud_api_padApi_updateContacts_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例id列表
+                fileUniqueId:
+                  type: string
+                  description: 通讯录文件ID
+                operateType:
+                  type: integer
+                  description: -1 新增联系人 0 删除联系人 1 覆盖联系人 ,默认为-1
+                info:
+                  type: array
+                  items:
+                    type: string
+                  description: 通讯录信息
+                firstName:
+                  type: string
+                  description: 姓名
+                phone:
+                  type: string
+                  description: 手机号
+                email:
+                  type: string
+                  description: 邮箱
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/setProxy:
+    post:
+      tags:
+        - Instance Management
+      summary: Set instance proxy
+      operationId: vcpcloud_api_padApi_setProxy_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - enable
+                - padCodes
+              properties:
+                account:
+                  type: string
+                  description: 账号
+                password:
+                  type: string
+                  description: 密码
+                ip:
+                  type: string
+                  description: IP
+                port:
+                  type: integer
+                  description: 端口
+                enable:
+                  type: boolean
+                  description: 启用
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例列表
+                proxyType:
+                  type: string
+                  description: 支持参数：proxy、vpn
+                proxyName:
+                  type: string
+                  description: 支持参数：socks5、http-relay(包含http、https)
+                model:
+                  type: string
+                  description: 名单生效模式：bypass(默认)/limit
+                bypassPackageList:
+                  type: array
+                  items:
+                    type: string
+                  description: 包名，设置后不走代理（model=bypass）
+                bypassIpList:
+                  type: array
+                  items:
+                    type: string
+                  description: IP，设置后不走代理（model=bypass）
+                bypassDomainList:
+                  type: array
+                  items:
+                    type: string
+                  description: 域名，设置后不走代理（model=bypass）
+                limitPackageList:
+                  type: array
+                  items:
+                    type: string
+                  description: 包名，仅其走代理（model=limit）
+                limitIpList:
+                  type: array
+                  items:
+                    type: string
+                  description: IP，仅其走代理（model=limit）
+                limitDomainList:
+                  type: array
+                  items:
+                    type: string
+                  description: 域名，仅其走代理（model=limit）
+                sUoT:
+                  type: boolean
+                  description: 是否开启udp连接 默认为false
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 房间号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/listInstalledApp:
+    post:
+      tags:
+        - Instance Management
+      summary: Real-time query installed app list
+      operationId: vcpcloud_api_padApi_listInstalledApp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编号
+                appName:
+                  type: string
+                  description: 应用名称
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          apps:
+                            type: array
+                            items:
+                              type: object
+                            description: 应用集合
+                          appName:
+                            type: string
+                            description: 应用名称
+                          packageName:
+                            type: string
+                            description: 包名
+                          versionCode:
+                            type: string
+                            description: 版本号
+                          versionName:
+                            type: string
+                            description: 版本名称
+                          appState:
+                            type: integer
+                            description: 0 已完成 1安装中 2下载中
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/setKeepAliveApp:
+    post:
+      tags:
+        - Instance Management
+      summary: Set app keep-alive
+      operationId: vcpcloud_api_padApi_setKeepAliveApp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - applyAllInstances
+                - serverName
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编号
+                applyAllInstances:
+                  type: boolean
+                  description: 是否应用所有实例模式
+                appInfos:
+                  type: array
+                  items:
+                    type: string
+                serverName:
+                  type: string
+                  description: com.xxx.xxx（包名）/com.xxx.xxx.service.DomeService (需要启动的服务完整路径)
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/setHideAppList:
+    post:
+      tags:
+        - Instance Management
+      summary: Set app hide (pending)
+      operationId: vcpcloud_api_padApi_setHideAppList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - appInfos
+                - packageName
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                appInfos:
+                  type: array
+                  items:
+                    type: string
+                packageName:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/replaceRealAdiTemplate:
+    post:
+      tags:
+        - Instance Management
+      summary: Modify real device ADI template
+      operationId: vcpcloud_api_padApi_replaceRealAdiTemplate_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - wipeData
+                - realPhoneTemplateId
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                wipeData:
+                  type: boolean
+                  description: 是否清除数据
+                realPhoneTemplateId:
+                  type: integer
+                  description: 云真机模板id
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/asyncCmd:
+    post:
+      tags:
+        - Instance Management
+      summary: Async execute ADB command
+      operationId: vcpcloud_api_padApi_asyncCmd_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - scriptContent
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                scriptContent:
+                  type: string
+                  description: ADB命令，多条命令使用分号隔开
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/switchRoot:
+    post:
+      tags:
+        - Instance Management
+      summary: Switch Root permission
+      operationId: vcpcloud_api_padApi_switchRoot_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - rootStatus
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                globalRoot:
+                  type: boolean
+                  description: 是否开启全局root权限，默认不开启
+                packageName:
+                  type: string
+                  description: 应用包名(非全局root必传)多个包名通过,连接
+                rootStatus:
+                  type: integer
+                  description: root状态，0：关闭 1：开启
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/screenshot:
+    post:
+      tags:
+        - Instance Management
+      summary: Local screenshot
+      operationId: vcpcloud_api_padApi_screenshot_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - rotation
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                rotation:
+                  type: integer
+                  description: 截图画面横竖屏旋：0：截图方向不做处理，默认；1：截图画面旋转为竖屏时：a：手机竖屏的截图，不做处理。b：手机横屏的截图，截图顺时针旋转90度。
+                broadcast:
+                  type: boolean
+                  description: 事件是否广播(默认false)
+                definition:
+                  type: integer
+                  description: 清晰度 取值范围0-100
+                resolutionHeight:
+                  type: integer
+                  description: 分辨率 - 高 大于1
+                resolutionWidth:
+                  type: integer
+                  description: 分辨率 - 宽 大于1
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 否
+                          padCode:
+                            type: string
+                            description: 否
+                          vmStatus:
+                            type: integer
+                            description: 是
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getLongGenerateUrl:
+    post:
+      tags:
+        - Instance Management
+      summary: Get instance real-time preview image
+      operationId: vcpcloud_api_padApi_getLongGenerateUrl_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例列表
+                format:
+                  type: string
+                  description: 图片格式，枚举值：png、jpg，默认png， png格式不支持压缩
+                height:
+                  type: string
+                  description: 缩放高度（像素，不传则保持原始比例） 不填默认使用云机分辨率
+                width:
+                  type: string
+                  description: 缩放宽度（像素，不传则保持原始比例） 不填默认使用云机分辨率
+                quality:
+                  type: integer
+                  description: 图片质量（百分比：0~100，不传则为50%) 经测试低于60会图片模糊
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          url:
+                            type: string
+                            description: 访问地址
+                          expireAt:
+                            type: integer
+                            description: URL到期时间（毫秒时间戳）
+                          success:
+                            type: boolean
+                            description: 是否成功生成URL
+                          reason:
+                            type: string
+                            description: 失败原因（成功时为空）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/upgradeImage:
+    post:
+      tags:
+        - Instance Management
+      summary: Upgrade image
+      operationId: vcpcloud_api_padApi_upgradeImage_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - imageId
+                - wipeData
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                imageId:
+                  type: string
+                  description: 镜像ID
+                wipeData:
+                  type: boolean
+                  description: 是否清除实例数据(data分区), true清除，false不清除
+                enableCpuCoreConfig:
+                  type: boolean
+                  description: 是否启用CPU大小核配置，本功能基于 Android cpuset 机制，为云手机物理机上的多个容器提供静态错峰的 CPU 资源分配方案。通过精细化划分大小核（Little/Big Cores）资源，
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          errorMsg:
+                            type: string
+                            description: 错误信息
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/virtualRealSwitch:
+    post:
+      tags:
+        - Instance Management
+      summary: Upgrade real device image
+      operationId: vcpcloud_api_padApi_virtualRealSwitch_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - imageId
+                - wipeData
+                - upgradeImageConvertType
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                imageId:
+                  type: string
+                  description: 镜像ID
+                wipeData:
+                  type: boolean
+                  description: 是否清除实例数据(data分区), true清除，false不清除
+                realPhoneTemplateId:
+                  type: integer
+                  description: 真机模板ID upgradeImageConvertType=real时必填
+                upgradeImageConvertType:
+                  type: string
+                  description: 转换镜像类型 virtual：虚拟机 real：云真机
+                screenLayoutId:
+                  type: integer
+                  description: 屏幕布局ID upgradeImageConvertType=virtual时必填
+                certificate:
+                  type: string
+                  description: 自定义手机根证书
+                deviceAndroidProps:
+                  type: object
+                  description: "安卓属性配置，参考 [安卓改机属性列表](https://cloud.vmoscloud.com/vmoscloud/doc/zh/server/InstanceAndroidPropList.htm"
+                enableCpuCoreConfig:
+                  type: boolean
+                  description: 是否启用CPU大小核配置，本功能基于 Android cpuset 机制，为云手机物理机上的多个容器提供静态错峰的 CPU 资源分配方案。通过精细化划分大小核（Little/Big Cores）资源，
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          errorMsg:
+                            type: string
+                            description: 错误信息
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/templateList:
+    post:
+      tags:
+        - Instance Management
+      summary: Paginated get real device templates
+      operationId: vcpcloud_api_padApi_templateList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - page
+              properties:
+                page:
+                  type: integer
+                  description: 页码 默认1
+                rows:
+                  type: integer
+                  description: 每页显示数量 默认10 取值范围为1-100
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/modelInfo:
+    post:
+      tags:
+        - Instance Management
+      summary: Batch get instance model info (pending)
+      operationId: vcpcloud_api_padApi_modelInfo_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          imei:
+                            type: string
+                            description: IMEI
+                          serialno:
+                            type: string
+                            description: 序列号
+                          wifimac:
+                            type: string
+                            description: Wi-Fi的mac地址
+                          androidid:
+                            type: string
+                            description: Android实例唯一标识
+                          model:
+                            type: string
+                            description: 型号
+                          brand:
+                            type: string
+                            description: 品牌
+                          manufacturer:
+                            type: string
+                            description: 厂商
+                          isRoot:
+                            type: string
+                            description: 是否是ROOT权限
+                          width:
+                            type: integer
+                            description: 云手机的宽 最大不超过1080
+                          height:
+                            type: integer
+                            description: 云手机的高 最大不超过1920
+                          memoryLimit:
+                            type: integer
+                            description: 内存限额
+                          bluetoothaddr:
+                            type: string
+                            description: 蓝牙地址
+                          phonenum:
+                            type: string
+                            description: 手机号码
+                          romVersion:
+                            type: string
+                            description: 安卓版本
+                          dataSize:
+                            type: integer
+                            description: 内存大小(b)
+                          dataSizeAvailable:
+                            type: integer
+                            description: 剩余可用(b)
+                          dataSizeUsed:
+                            type: string
+                            description: 已使用(b)
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/setSpeed:
+    post:
+      tags:
+        - Instance Management
+      summary: Set instance bandwidth (pending)
+      operationId: vcpcloud_api_padApi_setSpeed_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - upBandwidth
+                - downBandwidth
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                upBandwidth:
+                  type: string
+                  description: 上行带宽 Mbps (0：不限制；-1：限制上网)
+                downBandwidth:
+                  type: string
+                  description: 下行带宽 Mbps (0：不限制；-1：限制上网)
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/openOnlineAdb:
+    post:
+      tags:
+        - Instance Management
+      summary: Enable/disable ADB
+      operationId: vcpcloud_api_padApi_openOnlineAdb_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - openStatus
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例列表(传入实例数量1-200个)
+                openStatus:
+                  type: integer
+                  description: 开启关闭ADB状态(1开启 0或者不传默认关闭)
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1全失败，-2部分失败，-3取消，-4超时，-5异常，1，等待执行，2执行中，3完成）
+                          taskResult:
+                            type: string
+                            description: 任务结果
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/adb:
+    post:
+      tags:
+        - Instance Management
+      summary: Get ADB connection info
+      operationId: vcpcloud_api_padApi_adb_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCode
+                - enable
+              properties:
+                padCode:
+                  type: string
+                  description: 实例编号
+                enable:
+                  type: boolean
+                  description: "ADB 状态 true:开启 false:关闭"
+                expireMinutes:
+                  type: integer
+                  description: ADB有效期，有效期长1天到7天，单位：分钟，默认1440
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          command:
+                            type: string
+                            description: SSH 连接指令
+                          expireTime:
+                            type: string
+                            description: adb 链接有效期
+                          enable:
+                            type: boolean
+                            description: "ADB 状态 true:开启 false:关闭"
+                          key:
+                            type: string
+                            description: 连接密钥
+                          adb:
+                            type: string
+                            description: adb连接信息
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/batch/adb:
+    post:
+      tags:
+        - Instance Management
+      summary: Batch get ADB connection info (pending)
+      operationId: vcpcloud_api_padApi_batch_adb_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - enable
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编号列表，数量上限10个
+                enable:
+                  type: boolean
+                  description: 是否开启ADB，true为开启并返回连接信息，false为关闭ADB
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          successList:
+                            type: array
+                            items:
+                              type: object
+                            description: 批量执行成功的结果列表
+                          failedList:
+                            type: array
+                            items:
+                              type: object
+                            description: 批量执行失败的结果列表
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/simulateTouch:
+    post:
+      tags:
+        - Instance Management
+      summary: Simulate touch
+      operationId: vcpcloud_api_padApi_simulateTouch_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 需要触发点击的实例编码
+                width:
+                  type: integer
+                  description: 容器宽度
+                height:
+                  type: integer
+                  description: 容器高度
+                pointCount:
+                  type: integer
+                  description: 多点触控(多个手指点击云机屏幕效果)，默认1，范围1-10，传其他数字均使用默认值
+                positions:
+                  type: array
+                  items:
+                    type: string
+                  description: 点击坐标组
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          vmStatus:
+                            type: string
+                            description: 实例在线状态
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：任务已存在，请勿重复提交；1：任务已添加）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/padTaskDetail:
+    post:
+      tags:
+        - Instance Management
+      summary: Instance operation task details
+      operationId: vcpcloud_api_padApi_padTaskDetail_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskIds
+                - taskId
+              properties:
+                taskIds:
+                  type: integer
+                  items:
+                    type: string
+                taskId:
+                  type: integer
+                  description: 任务ID
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/executeScriptInfo:
+    post:
+      tags:
+        - Instance Management
+      summary: Get instance script execution result (pending)
+      operationId: vcpcloud_api_padApi_executeScriptInfo_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskIds
+              properties:
+                taskIds:
+                  type: integer
+                  description: 必填 数组长度为1-100
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskStatus:
+                            type: integer
+                            description: 任务状态（-1：全失败；-2：部分失败；-3：取消；-4：超时；1：待执行；2：执行中；3：完成）
+                          endTime:
+                            type: integer
+                            description: 任务执行结束时间
+                          taskContent:
+                            type: string
+                            description: 任务内容
+                          taskResult:
+                            type: string
+                            description: 任务结果
+                          errorMsg:
+                            type: string
+                            description: 失败的原因
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/screenshotInfo:
+    post:
+      tags:
+        - Instance Management
+      summary: Get instance screenshot result (pending)
+      operationId: vcpcloud_api_padApi_screenshotInfo_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskIds
+              properties:
+                taskIds:
+                  type: integer
+                  description: 必填
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/padExecuteTaskInfo:
+    post:
+      tags:
+        - Instance Management
+      summary: Instance restart/reset execution result (pending)
+      operationId: vcpcloud_api_padApi_padExecuteTaskInfo_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskIds
+              properties:
+                taskIds:
+                  type: integer
+                  description: 必填
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 链路追踪ID
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskStatus:
+                            type: integer
+                            description: 任务状态：（-1：全失败；-2：部分失败；-3：取消；-4：超时；1：待执行；2：执行中；3：完成）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/infos:
+    post:
+      tags:
+        - Instance Management
+      summary: Instance group list / instance list info
+      operationId: vcpcloud_api_padApi_infos_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - page
+                - rows
+              properties:
+                page:
+                  type: integer
+                  description: 页码
+                rows:
+                  type: integer
+                  description: 条数
+                padType:
+                  type: string
+                  description: 实例类型（virtual：虚拟机；real：真机）
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            description: 当前页
+                          rows:
+                            type: integer
+                            description: 每页的数量
+                          size:
+                            type: integer
+                            description: 当前页的数量
+                          total:
+                            type: integer
+                            description: 总记录数
+                          totalPage:
+                            type: integer
+                            description: 总页数
+                          pageData:
+                            type: array
+                            items:
+                              type: object
+                            description: 列表
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          padGrade:
+                            type: string
+                            description: 实例开数（q1-6六开，q1-2二开）
+                          padStatus:
+                            type: string
+                            description: 实例状态 （10-运行中 11-重启中 12-重置中 13-升级中 14-异常 15-未就绪）
+                          deviceIp:
+                            type: string
+                            description: 云机ip
+                          padIp:
+                            type: string
+                            description: 实例ip
+                          apps:
+                            type: array
+                            items:
+                              type: object
+                            description: 安装的应用列表
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/addPhoneRecord:
+    post:
+      tags:
+        - Instance Management
+      summary: Import call records
+      operationId: vcpcloud_api_padApi_addPhoneRecord_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - callRecords
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 需要编辑通话记录的实例编码
+                callRecords:
+                  type: array
+                  items:
+                    type: string
+                  description: 通话记录
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          vmStatus:
+                            type: string
+                            description: 实例在线状态
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/inputText:
+    post:
+      tags:
+        - Instance Management
+      summary: Cloud phone text input
+      operationId: vcpcloud_api_padApi_inputText_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - text
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编码
+                text:
+                  type: string
+                  description: 输入文本
+                code:
+                  type: integer
+                  description: 状态码
+                msg:
+                  type: string
+                  description: 响应消息
+                ts:
+                  type: integer
+                  description: 时间戳
+                data:
+                  type: array
+                  items:
+                    type: string
+                padCode:
+                  type: string
+                  description: 实例编号
+                taskId:
+                  type: integer
+                  description: 任务id
+                vmStatus:
+                  type: string
+                  description: 实例在线状态
+                taskStatus:
+                  type: string
+                  description: 任务当前状态
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          vmStatus:
+                            type: string
+                            description: 实例在线状态
+                          taskStatus:
+                            type: string
+                            description: 任务当前状态
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/simulateSendSms:
+    post:
+      tags:
+        - Instance Management
+      summary: Simulate send SMS
+      operationId: vcpcloud_api_padApi_simulateSendSms_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - senderNumber
+                - smsContent
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编码列表，数量1-100个
+                senderNumber:
+                  type: string
+                  description: 发送方号码，不支持大陆号码。（格式：长度限制16位，允许数字、英文、空格、+-号）
+                smsContent:
+                  type: string
+                  description: 短信内容（长度限制127位）
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 追踪ID
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/resetGAID:
+    post:
+      tags:
+        - Instance Management
+      summary: Reset GAID
+      operationId: vcpcloud_api_padApi_resetGAID_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - resetGmsType
+                - taskSource
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                resetGmsType:
+                  type: string
+                  description: 重置gms类型, 可选：GAID
+                oprBy:
+                  type: string
+                  description: 操作人
+                taskSource:
+                  type: string
+                  description: 任务来源，可选：OPEN_PLATFORM
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/injectAudioToMic:
+    post:
+      tags:
+        - Instance Management
+      summary: Inject audio to instance microphone
+      operationId: vcpcloud_api_padApi_injectAudioToMic_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - enable
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编码
+                url:
+                  type: string
+                  description: 音频文件下载地址 （此字段和fileUniqueId 2选1传值）
+                fileUniqueId:
+                  type: string
+                  description: 文件id唯一标识（此字段和url 2选1传值）
+                enable:
+                  type: boolean
+                  description: 注入开关
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          vmStatus:
+                            type: string
+                            description: 实例在线状态
+                          taskStatus:
+                            type: string
+                            description: 任务当前状态
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/cleanAppHome:
+    post:
+      tags:
+        - Instance Management
+      summary: Clear processes and return to desktop (pending)
+      operationId: vcpcloud_api_padApi_cleanAppHome_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编码
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          vmStatus:
+                            type: string
+                            description: 实例在线状态
+                          taskStatus:
+                            type: string
+                            description: 任务当前状态
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/unmannedLive:
+    post:
+      tags:
+        - Instance Management
+      summary: Unmanned live streaming
+      operationId: vcpcloud_api_padApi_unmannedLive_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编码(1-100个)
+                injectSwitch:
+                  type: boolean
+                  description: "是否开启注入视频(true:开启 false:取消) 默认是false"
+                injectLoop:
+                  type: boolean
+                  description: "是否循环播放(true:是 false：否) 默认是false"
+                injectUrl:
+                  type: string
+                  description: "单个视频注入地址，支持 http/https/rtmp:// 以及本地路径，与injectUrls至少传一项"
+                injectUrls:
+                  type: array
+                  items:
+                    type: string
+                  description: "视频注入地址列表(最多5个)，支持 http/https/rtmp:// 以及本地路径，与injectUrl至少传一项"
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          vmStatus:
+                            type: string
+                            description: 实例在线状态
+                          taskStatus:
+                            type: string
+                            description: 任务当前状态
+                          errMsg:
+                            type: string
+                            description: 错误提示
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/injectPicture:
+    post:
+      tags:
+        - Instance Management
+      summary: Image injection (pending)
+      operationId: vcpcloud_api_padApi_injectPicture_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - injectUrl
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编码(1-100个)
+                injectSwitch:
+                  type: boolean
+                  description: "是否开启注入图片(true:开启 false:取消) 默认是false"
+                injectLoop:
+                  type: boolean
+                  description: "是否循环播放(true:是 false：否) 默认是false"
+                injectUrl:
+                  type: string
+                  description: "图片注入地址,支持 http https rtmp://"
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          traceId:
+                            type: string
+                            description: 追踪ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务id
+                          vmStatus:
+                            type: string
+                            description: 实例在线状态
+                          taskStatus:
+                            type: string
+                            description: 任务当前状态
+                          errMsg:
+                            type: string
+                            description: 错误提示
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/addUserRom:
+    post:
+      tags:
+        - Instance Management
+      summary: Upload user image
+      operationId: vcpcloud_api_padApi_addUserRom_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - updateLog
+                - androidVersion
+                - version
+                - downloadUrl
+                - packageSize
+              properties:
+                name:
+                  type: string
+                  description: ROM名称
+                updateLog:
+                  type: string
+                  description: 更新日志
+                androidVersion:
+                  type: string
+                  description: 安卓版本
+                version:
+                  type: string
+                  description: 版本
+                downloadUrl:
+                  type: string
+                  description: 地址
+                packageSize:
+                  type: string
+                  description: 大小（单位：Byte）
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          字段名:
+                            type: string
+                            description: 说明
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/replacement:
+    post:
+      tags:
+        - Instance Management
+      summary: Device replacement
+      operationId: vcpcloud_api_padApi_replacement_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCode
+              properties:
+                padCode:
+                  type: string
+                  description: 实例编号
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          equipmentId:
+                            type: integer
+                            description: 设备编号
+                          padCode:
+                            type: string
+                            description: 实例编号
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/confirmTransfer:
+    post:
+      tags:
+        - Instance Management
+      summary: Transfer cloud phone
+      operationId: vcpcloud_api_padApi_confirmTransfer_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - makeOverMobilePhone
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 要转移的实例编号列表
+                makeOverMobilePhone:
+                  type: string
+                  description: 接收转移设备的账户邮箱
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/setHideAccessibilityAppList:
+    post:
+      tags:
+        - Instance Management
+      summary: Hide accessibility service
+      operationId: vcpcloud_api_padApi_setHideAccessibilityAppList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - appInfos
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编号数组（最多200个）
+                appInfos:
+                  type: array
+                  items:
+                    type: string
+                  description: "隐藏应用列表对象数组，传空数组[]表示清空（0-200个）"
+                packageName:
+                  type: string
+                  description: 是（数组非空时）
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/uninstallApp:
+    post:
+      tags:
+        - Application Management
+      summary: Uninstall app
+      operationId: vcpcloud_api_padApi_uninstallApp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - apkPackageList
+                - padCodeList
+              properties:
+                apkPackageList:
+                  type: array
+                  items:
+                    type: string
+                  description: 包名集合
+                padCodeList:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/startApp:
+    post:
+      tags:
+        - Application Management
+      summary: Start app
+      operationId: vcpcloud_api_padApi_startApp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pkgName
+                - padCodes
+              properties:
+                pkgName:
+                  type: string
+                  description: 包名
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/stopApp:
+    post:
+      tags:
+        - Application Management
+      summary: Stop app
+      operationId: vcpcloud_api_padApi_stopApp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pkgName
+                - padCodes
+              properties:
+                pkgName:
+                  type: string
+                  description: 包名
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/restartApp:
+    post:
+      tags:
+        - Application Management
+      summary: Restart app
+      operationId: vcpcloud_api_padApi_restartApp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pkgName
+                - padCodes
+              properties:
+                pkgName:
+                  type: string
+                  description: 包名
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/uploadFileV3:
+    post:
+      tags:
+        - Application Management
+      summary: Upload file via URL
+      operationId: vcpcloud_api_padApi_uploadFileV3_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                padCode:
+                  type: string
+                  description: 实例编号
+                autoInstall:
+                  type: integer
+                  description: 是否需要⾃动安装 1需要、0不需要。不填默认不需要。仅对apk类型的⽂件⽣效
+                fileUniqueId:
+                  type: string
+                  description: 系文件id唯一标识
+                customizeFilePath:
+                  type: string
+                  description: "⾃定义路径。非必传，需以/开头。（示例：\"/DCIM/\", \"/Documents/\", \"/Download/\", \"/Movies/\", \"/Music/\", \"/Pictures/\"）"
+                fileName:
+                  type: string
+                  description: 文件名称
+                packageName:
+                  type: string
+                  description: 文件包名
+                url:
+                  type: string
+                  description: 文件安装路径
+                md5:
+                  type: string
+                  description: 系文件唯一标识
+                isAuthorization:
+                  type: boolean
+                  description: 是否授权(默认全授权)
+                iconPath:
+                  type: string
+                  description: 安装时的图标展示
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 实例编号
+                          taskId:
+                            type: integer
+                            description: 任务ID
+                          vmStatus:
+                            type: integer
+                            description: 实例在线状态（0：离线；1：在线）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/uploadFile:
+    post:
+      tags:
+        - Application Management
+      summary: Upload file to cloud storage
+      operationId: vcpcloud_api_padApi_uploadFile_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  description: 需要上传的文件
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          downloadUrl:
+                            type: string
+                            description: 文件下载链接
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/deleteOssFiles:
+    post:
+      tags:
+        - Application Management
+      summary: Delete cloud storage files
+      operationId: vcpcloud_api_padApi_deleteOssFiles_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - files
+              properties:
+                files:
+                  type: integer
+                  items:
+                    type: string
+                  description: 云空间文件唯一编号集合
+                urls:
+                  type: array
+                  items:
+                    type: string
+                  description: 云空间文件url地址集合
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/selectFiles:
+    post:
+      tags:
+        - Application Management
+      summary: Query user file list
+      operationId: vcpcloud_api_padApi_selectFiles_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          appName:
+                            type: string
+                            description: 文件名称
+                          downloadUrl:
+                            type: string
+                            description: 文件下载链接
+                          packageName:
+                            type: string
+                            description: APK包名，只有ap文件才有
+                          fileId:
+                            type: integer
+                            description: 云空间文件编号
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/fileTaskDetail:
+    post:
+      tags:
+        - Task Management
+      summary: File task details
+      operationId: vcpcloud_api_padApi_fileTaskDetail_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskIds
+                - taskId
+              properties:
+                taskIds:
+                  type: integer
+                  items:
+                    type: string
+                taskId:
+                  type: integer
+                  description: 任务ID
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/createMoneyOrder:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Create/renew cloud phone
+      operationId: vcpcloud_api_padApi_createMoneyOrder_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - androidVersionName
+                - goodId
+                - goodNum
+                - autoRenew
+                - equipmentId
+              properties:
+                androidVersionName:
+                  type: string
+                  description: Android 版本：Android10、Android13、Android14
+                goodId:
+                  type: integer
+                  description: "商品Id（对应<a href=\"/vmoscloud/doc/zh/server/OpenAPI.html#sku套餐列表\" style=\"color:green;\"> sku套餐列表</a>的商品I"
+                goodNum:
+                  type: integer
+                  description: 商品数量
+                autoRenew:
+                  type: boolean
+                  description: 是否自动续费（默认开启）true-开启、false-关闭
+                equipmentId:
+                  type: string
+                  description: （新购设备无需填写，续费设备必须填写）续费设备编号 （多台设备以逗号分割）
+                countryCode:
+                  type: string
+                  description: 国家代码，用于指定云手机所属区域
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/userPadList:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Cloud phone list
+      operationId: vcpcloud_api_padApi_userPadList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCode
+              properties:
+                padCode:
+                  type: string
+                  description: 实例编号
+                equipmentIds:
+                  type: integer
+                  items:
+                    type: string
+                  description: 设备编号数组
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/padInfo:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Cloud phone info query
+      operationId: vcpcloud_api_padApi_padInfo_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCode
+              properties:
+                padCode:
+                  type: string
+                  description: 实例编号
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getCloudGoodList:
+    get:
+      tags:
+        - Cloud Phone Management
+      summary: SKU package list
+      operationId: vcpcloud_api_padApi_getCloudGoodList_get
+      parameters:
+        - name: androidVersion
+          in: query
+          required: false
+          description: 安卓版本号(不填写默认是安卓13)
+          schema:
+            type: integer
+        - name: goodIds
+          in: query
+          required: false
+          description: 按 SKU ID 过滤，逗号分隔，最多 50 个；不传则返回全部
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/createMoneyProOrder:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Device presale purchase
+      operationId: vcpcloud_api_padApi_createMoneyProOrder_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - androidVersionName
+                - goodId
+                - goodNum
+                - autoRenew
+              properties:
+                androidVersionName:
+                  type: string
+                  description: Android 版本：Android10、Android13、Android14
+                goodId:
+                  type: integer
+                  description: "商品Id（对应<a href=\"/vmoscloud/doc/zh/server/OpenAPI.html#sku套餐列表\" style=\"color:green;\"> sku套餐列表</a>的商品I"
+                goodNum:
+                  type: integer
+                  description: 商品数量
+                autoRenew:
+                  type: boolean
+                  description: 是否自动续费（默认关闭）true-开启、false-关闭
+                countryCode:
+                  type: string
+                  description: 国家代码，用于指定云手机所属区域
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/queryProOrderList:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Query presale order result details
+      operationId: vcpcloud_api_padApi_queryProOrderList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - proBuyStatus
+              properties:
+                proBuyStatus:
+                  type: integer
+                  description: 1-待发货 2-已发货 为空默认全部
+                orderId:
+                  type: integer
+                  description: 预售订单号
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/imageVersionList:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Android image version list
+      operationId: vcpcloud_api_padApi_imageVersionList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCode
+              properties:
+                padCode:
+                  type: string
+                  description: 设备编号
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/createByTimingOrder:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Create timing device order
+      operationId: vcpcloud_api_padApi_createByTimingOrder_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - goodId
+                - goodNum
+              properties:
+                goodId:
+                  type: integer
+                  description: "商品Id（对应<a href=\"/vmoscloud/doc/zh/server/OpenAPI.html#sku套餐列表\" style=\"color:green;\"> sku套餐列表</a>的商品I"
+                goodNum:
+                  type: integer
+                  description: 商品数量
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/timingPadOn:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Timing device power on
+      operationId: vcpcloud_api_padApi_timingPadOn_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编号集合
+                defCode:
+                  type: integer
+                  description: 是否开机为新机 0-否 1-是 默认为0 优先级高
+                netStorageResUnitCode:
+                  type: string
+                  description: 指定开机的备份资源包ID  优先级低
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/timingPadOff:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Timing device power off
+      operationId: vcpcloud_api_padApi_timingPadOff_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编号集合
+                isBackUp:
+                  type: integer
+                  description: 是否备份 0-否 1-是 默认备份
+                remark:
+                  type: string
+                  description: 给当前需要备份的资源包添加说明
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/timingPadDel:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Timing device destroy
+      operationId: vcpcloud_api_padApi_timingPadDel_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 实例编号集合
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/vcTimingBackupList:
+    get:
+      tags:
+        - Cloud Phone Management
+      summary: Storage resource package list
+      operationId: vcpcloud_api_padApi_vcTimingBackupList_get
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getRenewStorageInfo:
+    get:
+      tags:
+        - Cloud Phone Management
+      summary: Cloud storage remaining capacity
+      operationId: vcpcloud_api_padApi_getRenewStorageInfo_get
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getVcStorageGoods:
+    get:
+      tags:
+        - Cloud Phone Management
+      summary: Cloud storage product list
+      operationId: vcpcloud_api_padApi_getVcStorageGoods_get
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/buyStorageGoods:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Purchase cloud storage expansion
+      operationId: vcpcloud_api_padApi_buyStorageGoods_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - storageId
+                - autoRenewOrder
+              properties:
+                storageId:
+                  type: integer
+                  description: 云空间扩容商品唯一ID
+                autoRenewOrder:
+                  type: integer
+                  description: 是否自动续费 0-否 1-是
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/selectAutoRenew:
+    get:
+      tags:
+        - Cloud Phone Management
+      summary: Cloud storage renewal details query
+      operationId: vcpcloud_api_padApi_selectAutoRenew_get
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/renewsStorageGoods:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Aggregate renew cloud storage products
+      operationId: vcpcloud_api_padApi_renewsStorageGoods_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - autoRenewOrder
+              properties:
+                autoRenewOrder:
+                  type: integer
+                  description: 是否自动续费 0-否 1-是
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/updateRenewStorageStatus:
+    get:
+      tags:
+        - Cloud Phone Management
+      summary: Cloud storage auto-renewal switch
+      operationId: vcpcloud_api_padApi_updateRenewStorageStatus_get
+      parameters:
+        - name: renewStorageStatus
+          in: query
+          required: true
+          description: 是否自动续费 false-否 true-是
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/deleteUploadFiles:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Delete backup resource package data
+      operationId: vcpcloud_api_padApi_deleteUploadFiles_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/toggleProcessHide:
+    post:
+      tags:
+        - Cloud Phone Management
+      summary: Show or hide app process
+      operationId: vcpcloud_api_padApi_toggleProcessHide_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+                - show
+                - packageName
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                show:
+                  type: boolean
+                  description: 隐藏进程： true-隐藏 false-恢复
+                packageName:
+                  type: string
+                  description: 应用包名
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getEmailServiceList:
+    get:
+      tags:
+        - Email Verification Service
+      summary: Get email service list
+      operationId: vcpcloud_api_padApi_getEmailServiceList_get
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          price:
+                            type: string
+                            description: 价格
+                          stockNum:
+                            type: integer
+                            description: 剩余库存
+                          serviceId:
+                            type: string
+                            description: 服务列表编号
+                          serviceName:
+                            type: string
+                            description: 服务名称
+                          items:
+                            type: array
+                            items:
+                              type: object
+                            description: 子服务列表
+                          serviceItemId:
+                            type: integer
+                            description: 子服务唯一ID （购买时使用的ID）
+                          serviceItemName:
+                            type: string
+                            description: 子服务名称
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getEmailTypeList:
+    get:
+      tags:
+        - Email Verification Service
+      summary: Get email type and remaining stock
+      operationId: vcpcloud_api_padApi_getEmailTypeList_get
+      parameters:
+        - name: serviceId
+          in: query
+          required: false
+          description: 对应 serviceItemId 字段
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          price:
+                            type: string
+                            description: 价格
+                          name:
+                            type: string
+                            description: 类型名称
+                          stockNum:
+                            type: integer
+                            description: 剩余库存
+                          id:
+                            type: integer
+                            description: 邮箱类型编号
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/createEmailOrder:
+    post:
+      tags:
+        - Email Verification Service
+      summary: Create email order
+      operationId: vcpcloud_api_padApi_createEmailOrder_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - serviceId
+              properties:
+                serviceId:
+                  type: integer
+                  description: 对应 serviceItemId 字段
+                emailTypeId:
+                  type: integer
+                  description: 对应 /getEmailTypeList 返回的 ID 字段
+                goodNum:
+                  type: integer
+                  description: 购买数量
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getEmailOrder:
+    get:
+      tags:
+        - Email Verification Service
+      summary: Query purchased email list
+      operationId: vcpcloud_api_padApi_getEmailOrder_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: 必填，分页参数，当前页
+          schema:
+            type: integer
+        - name: size
+          in: query
+          required: false
+          description: 必填，分页参数，每页条数
+          schema:
+            type: integer
+        - name: serviceId
+          in: query
+          required: false
+          description: 非必填，对应 serviceItemId 字段
+          schema:
+            type: integer
+        - name: email
+          in: query
+          required: false
+          description: 非必填，邮箱模糊查询
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          description: 非必填，邮箱状态  0-未使用 1-接收中 2-已使用 3-已失效
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getEmailCode:
+    get:
+      tags:
+        - Email Verification Service
+      summary: Refresh get email verification code
+      operationId: vcpcloud_api_padApi_getEmailCode_get
+      parameters:
+        - name: orderId
+          in: query
+          required: false
+          description: 必填，对应 outOrderId 字段
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getDynamicGoodService:
+    get:
+      tags:
+        - Dynamic Proxy Service
+      summary: Query dynamic proxy product list
+      operationId: vcpcloud_api_padApi_getDynamicGoodService_get
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          goodName:
+                            type: string
+                            description: 商品名称
+                          goodId:
+                            type: integer
+                            description: 商品唯一编号
+                          goodPrice:
+                            type: string
+                            description: 商品价格
+                          protocolDescription:
+                            type: string
+                            description: 支持的协议信息
+                          totalTraffic:
+                            type: array
+                            items:
+                              type: object
+                            description: 流量包大小
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getDynamicProxyRegion:
+    get:
+      tags:
+        - Dynamic Proxy Service
+      summary: Query dynamic proxy region list
+      operationId: vcpcloud_api_padApi_getDynamicProxyRegion_get
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          CountryName:
+                            type: string
+                            description: 国家名称
+                          CountryCode:
+                            type: string
+                            description: 国家Code
+                          State:
+                            type: array
+                            items:
+                              type: object
+                            description: 地区列表
+                          city:
+                            type: array
+                            items:
+                              type: object
+                            description: 城市列表
+                          name:
+                            type: string
+                            description: 地区名称
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/queryCurrentTrafficBalance:
+    get:
+      tags:
+        - Dynamic Proxy Service
+      summary: Get dynamic proxy current balance
+      operationId: vcpcloud_api_padApi_queryCurrentTrafficBalance_get
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          accumulatedTraffic:
+                            type: string
+                            description: 总流量
+                          remainingTraffic:
+                            type: array
+                            items:
+                              type: object
+                            description: 剩余流量
+                          useTraffic:
+                            type: array
+                            items:
+                              type: object
+                            description: 已使用流量
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getDynamicProxyHost:
+    get:
+      tags:
+        - Dynamic Proxy Service
+      summary: Query supported server regions
+      operationId: vcpcloud_api_padApi_getDynamicProxyHost_get
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: 大洲名称
+                          value:
+                            type: string
+                            description: 大洲服务器地址
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/buyDynamicProxy:
+    post:
+      tags:
+        - Dynamic Proxy Service
+      summary: Purchase dynamic proxy traffic package
+      operationId: vcpcloud_api_padApi_buyDynamicProxy_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - goodId
+              properties:
+                goodId:
+                  type: integer
+                  description: 对应动态流量包的唯一ID
+                goodNum:
+                  type: integer
+                  description: 购买数量
+                autoRenewOrder:
+                  type: integer
+                  description: 开启自动续费 0-关闭 1-开启 剩余流量低于50MB时，触发自动续费
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/createProxy:
+    post:
+      tags:
+        - Dynamic Proxy Service
+      summary: Create dynamic proxy
+      operationId: vcpcloud_api_padApi_createProxy_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - city
+              properties:
+                city:
+                  type: string
+                  description: "城市 不选要传\"\""
+                countryCode:
+                  type: string
+                  description: 国家Code
+                goodNum:
+                  type: integer
+                  description: 购买数量
+                proxyHost:
+                  type: string
+                  description: 大洲网址
+                proxyType:
+                  type: string
+                  description: 代理类型  socks5 / http / https
+                proxyUseType:
+                  type: string
+                  description: 挂载方式  proxy / vpm
+                state:
+                  type: string
+                  description: "地区 不选要传\"\""
+                time:
+                  type: string
+                  description: 自动更换ip频率 (分钟) 可选 5、10、15、30、45、60、90
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            description: 代理ID
+                          proxyHost:
+                            type: string
+                            description: 动态代理
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getProxys:
+    get:
+      tags:
+        - Dynamic Proxy Service
+      summary: Query dynamic proxy list
+      operationId: vcpcloud_api_padApi_getProxys_get
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: 当前页
+          schema:
+            type: integer
+        - name: rows
+          in: query
+          required: false
+          description: 每页条数
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          records:
+                            type: array
+                            items:
+                              type: object
+                            description: 动态代理信息
+                          id:
+                            type: string
+                            description: 代理唯一编号
+                          proxyHost:
+                            type: string
+                            description: 大洲服务器域名
+                          proxyPort:
+                            type: string
+                            description: 大洲服务器端口
+                          userName:
+                            type: string
+                            description: 动态代理用户名
+                          password:
+                            type: string
+                            description: 动态代理密码
+                          proxyType:
+                            type: string
+                            description: 动态代理协议类型
+                          proxyUseType:
+                            type: string
+                            description: 动态代理挂载方式
+                          countryCode:
+                            type: string
+                            description: 国家Code
+                          state:
+                            type: string
+                            description: 地区
+                          city:
+                            type: string
+                            description: 城市
+                          time:
+                            type: integer
+                            description: 刷新频率
+                          total:
+                            type: integer
+                            description: 代理条数
+                          size:
+                            type: integer
+                            description: 每页展示数
+                          pages:
+                            type: integer
+                            description: 总页数
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getDynamicProxyOrders:
+    post:
+      tags:
+        - Dynamic Proxy Service
+      summary: Query dynamic proxy order list
+      operationId: vcpcloud_api_padApi_getDynamicProxyOrders_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - page
+              properties:
+                page:
+                  type: integer
+                  description: 当前页
+                rows:
+                  type: integer
+                  description: 每页条数
+                completeStartTime:
+                  type: string
+                  description: 支付开始时间
+                completeEndTime:
+                  type: string
+                  description: 支付结束时间
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          records:
+                            type: array
+                            items:
+                              type: object
+                            description: 动态代理信息
+                          orderId:
+                            type: string
+                            description: 平台唯一ID
+                          orderPrice:
+                            type: integer
+                            description: 订单金额分
+                          payPrice:
+                            type: integer
+                            description: 支付金额分
+                          createTime:
+                            type: string
+                            description: 创建时间
+                          completeTime:
+                            type: string
+                            description: 支付时间
+                          orderStatus:
+                            type: integer
+                            description: 订单状态 0-待支付 1-已支付
+                          goodId:
+                            type: integer
+                            description: 商品唯一ID
+                          goodNum:
+                            type: integer
+                            description: 购买数量
+                          goodName:
+                            type: string
+                            description: 商品名称
+                          goodPrice:
+                            type: integer
+                            description: 商品单价
+                          goodSize:
+                            type: integer
+                            description: 商品流量包带下
+                          sumSize:
+                            type: integer
+                            description: 订单总流量包大小
+                          orderOtherInfo:
+                            type: string
+                            description: 订单说明
+                          autoRenewOrder:
+                            type: integer
+                            description: 是否开启续费 1-开启 0-不开 （全局生效）
+                          total:
+                            type: integer
+                            description: 代理条数
+                          size:
+                            type: integer
+                            description: 每页展示数
+                          pages:
+                            type: integer
+                            description: 总页数
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/batchPadConfigProxy:
+    post:
+      tags:
+        - Dynamic Proxy Service
+      summary: Configure dynamic proxy for instances
+      operationId: vcpcloud_api_padApi_batchPadConfigProxy_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCodes
+              properties:
+                padCodes:
+                  type: array
+                  items:
+                    type: string
+                  description: 云机集合
+                setProxyFlag:
+                  type: boolean
+                  description: 是否设备代理到云机
+                proxyIds:
+                  type: array
+                  items:
+                    type: string
+                  description: 动态代理唯一ID
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/selectBatchPadProxyTask:
+    post:
+      tags:
+        - Dynamic Proxy Service
+      summary: Query batch instance set proxy task
+      operationId: vcpcloud_api_padApi_selectBatchPadProxyTask_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskId
+              properties:
+                taskId:
+                  type: integer
+                  description: 批次ID，挂载代理是异步操作，因此需要等待5s或者循环查询
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          padCode:
+                            type: string
+                            description: 设备号
+                          taskId:
+                            type: integer
+                            description: 任务ID，通过云机任务查询结果
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getDynamicProxyAutomaticRenewal:
+    get:
+      tags:
+        - Dynamic Proxy Service
+      summary: Query dynamic proxy auto-renewal info
+      operationId: vcpcloud_api_padApi_getDynamicProxyAutomaticRenewal_get
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          good_size:
+                            type: integer
+                            description: 续费的流量包大小
+                          auto_renew_order:
+                            type: integer
+                            description: 是否开启自动续费 0-关闭 1-开启
+                          order_price:
+                            type: integer
+                            description: 自动续费需扣除的金额
+                          good_name:
+                            type: string
+                            description: 自动续费商品名称
+                          good_number:
+                            type: integer
+                            description: 自动续费商品数量
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/setAutoRenewSwitch:
+    post:
+      tags:
+        - Dynamic Proxy Service
+      summary: Set dynamic proxy auto-renewal switch
+      operationId: vcpcloud_api_padApi_setAutoRenewSwitch_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - autoRenewOrder
+              properties:
+                autoRenewOrder:
+                  type: integer
+                  description: 自动续费开关 0-关  1-开
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/delProxyByIds:
+    post:
+      tags:
+        - Dynamic Proxy Service
+      summary: Delete dynamic proxy
+      operationId: vcpcloud_api_padApi_delProxyByIds_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: integer
+                  items:
+                    type: string
+                  description: 要删除的动态代理ID集合
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/proxyGoodList:
+    get:
+      tags:
+        - Static Residential Proxy Service
+      summary: Get static residential product list
+      operationId: vcpcloud_api_padApi_proxyGoodList_get
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          proxyGoodName:
+                            type: string
+                            description: 商品名称
+                          proxyGoodId:
+                            type: integer
+                            description: 商品唯一编号
+                          proxyGoodPrice:
+                            type: integer
+                            description: 商品价格（美分）
+                          proxyGoodType:
+                            type: integer
+                            description: 代理商品类型：0-通用  1-socket5  2-http  3-https
+                          proxyGoodTime:
+                            type: integer
+                            description: 商品时长（分钟）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getProxyRegion:
+    get:
+      tags:
+        - Static Residential Proxy Service
+      summary: Get static residential supported countries/cities
+      operationId: vcpcloud_api_padApi_getProxyRegion_get
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          country:
+                            type: string
+                            description: 支持的国家code
+                          countryZh:
+                            type: string
+                            description: 支持的国家说明
+                          countryId:
+                            type: integer
+                            description: 国家唯一编号
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/createProxyOrder:
+    post:
+      tags:
+        - Static Residential Proxy Service
+      summary: Static residential product purchase
+      operationId: vcpcloud_api_padApi_createProxyOrder_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - proxyGoodId
+              properties:
+                proxyGoodId:
+                  type: integer
+                  description: 对应静态住宅商品的唯一ID
+                region:
+                  type: string
+                  description: 静态住宅的地区-country
+                num:
+                  type: integer
+                  description: 购买数量
+                country:
+                  type: string
+                  description: 静态住宅的国家-country
+                proxyAddress:
+                  type: string
+                  description: 静态住宅的地址-countryZh
+                autoRenew:
+                  type: boolean
+                  description: 开启自动续费 false-关闭 true-开启
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/selectProxyOrderList:
+    post:
+      tags:
+        - Static Residential Proxy Service
+      summary: Static residential proxy order details
+      operationId: vcpcloud_api_padApi_selectProxyOrderList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - page
+              properties:
+                page:
+                  type: integer
+                  description: 第几页
+                rows:
+                  type: integer
+                  description: 每页展示多少条
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            description: 条数
+                          size:
+                            type: integer
+                            description: 每页展示数
+                          pages:
+                            type: integer
+                            description: 总页数
+                          records:
+                            type: array
+                            items:
+                              type: object
+                            description: 订单信息
+                          buyNumber:
+                            type: string
+                            description: 购买数量
+                          goodName:
+                            type: string
+                            description: 商品名称
+                          createTime:
+                            type: integer
+                            description: 创建时间
+                          orderId:
+                            type: string
+                            description: 订单ID
+                          payPrice:
+                            type: string
+                            description: 支付金额
+                          orderStatus:
+                            type: string
+                            description: 订单状态 0-待支付 1-已支付
+                          orderPrice:
+                            type: string
+                            description: 订单金额
+                          goodPrice:
+                            type: string
+                            description: 商品单价
+                          goodNum:
+                            type: string
+                            description: 商品数量
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/createRenewProxyOrder:
+    post:
+      tags:
+        - Static Residential Proxy Service
+      summary: Static residential proxy renewal
+      operationId: vcpcloud_api_padApi_createRenewProxyOrder_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - proxyGoodId
+              properties:
+                proxyGoodId:
+                  type: integer
+                  description: 对应静态住宅商品的唯一ID
+                proxyIps:
+                  type: string
+                  description: 续费的IP，多个以，分割
+                autoRenew:
+                  type: boolean
+                  description: 开启自动续费 false-关闭 true-开启
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/queryProxyList:
+    post:
+      tags:
+        - Static Residential Proxy Service
+      summary: Query static residential proxy list
+      operationId: vcpcloud_api_padApi_queryProxyList_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - current
+              properties:
+                current:
+                  type: integer
+                  description: 第几页
+                size:
+                  type: integer
+                  description: 每页展示多少条
+      responses:
+        "200":
+          description: Success response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/StandardResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            description: 条数
+                          size:
+                            type: integer
+                            description: 每页展示数
+                          pages:
+                            type: integer
+                            description: 总页数
+                          records:
+                            type: array
+                            items:
+                              type: object
+                            description: 订单信息
+                          proxyStatus:
+                            type: integer
+                            description: 代理状态：0-检测中 1-正常 -1检测失败 2-待检测
+                          proxyGoodId:
+                            type: string
+                            description: 商品ID
+                          proxyName:
+                            type: integer
+                            description: 代理名称
+                          proxyUseNumber:
+                            type: string
+                            description: 挂载云机数
+                          proxyType:
+                            type: string
+                            description: "代理类型:1-Socks5  2-http 3-https"
+                          proxyHost:
+                            type: string
+                            description: 订单状态 0-待支付 1-已支付
+                          proxyPort:
+                            type: string
+                            description: 代理端口（奇数-socks5 偶数-http）63007 (63008)
+                          password:
+                            type: string
+                            description: 代理密码
+                          proxyCountry:
+                            type: string
+                            description: 代理所属国家
+                          expectedExpireTime:
+                            type: string
+                            description: 到期时时间戳
+                          expireTime:
+                            type: string
+                            description: 到期时时间戳 （同上，使用 expireTime 即可）
+                          account:
+                            type: string
+                            description: 用户名
+                          proxyId:
+                            type: string
+                            description: 代理唯一ID （挂载云机使用）
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/stsTokenByPadCode:
+    post:
+      tags:
+        - SDK Token
+      summary: Get SDK temporary token by padCode
+      operationId: vcpcloud_api_padApi_stsTokenByPadCode_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - padCode
+              properties:
+                padCode:
+                  type: string
+                  description: 实例编号
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/getSessionToken:
+    get:
+      tags:
+        - SDK Token
+      summary: Get group control session token
+      operationId: vcpcloud_api_padApi_getSessionToken_get
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+  /vcpcloud/api/padApi/clearStsToken:
+    post:
+      tags:
+        - SDK Token
+      summary: Clear SDK authorization token
+      operationId: vcpcloud_api_padApi_clearStsToken_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/SuccessResponse"
+        default:
+          $ref: "#/components/responses/ErrorResponse"
+
+components:
+  securitySchemes:
+    VMOSCloudHMAC:
+      type: http
+      scheme: custom
+      description: |
+        HMAC-SHA256 signature. Required headers: x-date (UTC ISO 8601), x-host (api.vmoscloud.com),
+        Content-Type (application/json), authorization (HMAC-SHA256).
+        Format: HMAC-SHA256 Credential={AccessKey}, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature={Signature}
+        Steps see Getting Started example.md.
+  schemas:
+    StandardResponse:
+      type: object
+      required: [code, msg, ts]
+      properties:
+        code:
+          type: integer
+          description: Business code; 200 = success
+          example: 200
+        msg:
+          type: string
+          description: Message
+          example: "success"
+        ts:
+          type: integer
+          description: Timestamp
+          example: 1704067200000
+        data:
+          description: Business data; structure per OpenAPI.md per-API response
+  responses:
+    SuccessResponse:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/StandardResponse"
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/StandardResponse"
+              - type: object
+                properties:
+                  code:
+                    type: integer
+                    description: Error code
+                    example: 500
+                  msg:
+                    type: string
+                    description: Error message
+                    example: "Internal server error"

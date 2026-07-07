@@ -1,0 +1,3 @@
+Host: api.vmoscloud.com
+Access Key ID: R3ZAcmkLn0zu2RWyJCQYn5RHHW9j03G4
+Secret Access Key: vYeoL2mCuwLJIQoLXkXAUREO
