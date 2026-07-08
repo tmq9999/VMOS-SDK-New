@@ -66,8 +66,9 @@ FP = f"{BRAND}/{DEVICE}/{DEVICE}:{RELEASE}/{BUILD_ID}/{INCREMENTAL}:user/release
 DESCRIPTION  = f"{DEVICE}-user {RELEASE} {BUILD_ID} {INCREMENTAL} release-keys"
 
 # ── Config ────────────────────────────────────────────────────────────────────
-# URL Kitsune Magisk APK (chứa libmagisk.so = multi-call binary có resetprop)
-KITSUNE_APK_URL = "https://github.com/HuskyDG/magisk-files/releases/download/29999/app-release.apk"
+# URL magisk_arm64 binary (libmagisk.so ARM64 extracted từ Kitsune Magisk v30.7)
+# Hosted trên GitHub repo — download trực tiếp bằng curl
+MAGISK_BINARY_URL = "https://raw.githubusercontent.com/tmq9999/VMOS-SDK-New/main/AccessRootVMOS/verify/magisk_arm64"
 RESETPROP_INJECT = "/data/local/tmp/resetprop"   # path sau khi inject
 RESETPROP_SYSTEM = "/system/bin/resetprop"        # path nếu Magisk đã bật
 
@@ -147,55 +148,33 @@ elif "HAS_INJECT" in check:
         print(f"  ✗ {RESETPROP_INJECT} có nhưng không hoạt động: {v.strip()}")
 
 if RP is None:
-    # ── Step 2B: Inject resetprop từ Kitsune APK ─────────────────────────────
-    print(f"\n[2B] Inject resetprop từ Kitsune Magisk APK...")
-    print(f"  Downloading APK (~11MB) từ GitHub...")
-    print(f"  URL: {KITSUNE_APK_URL}")
+    # ── Step 2B: Download magisk_arm64 binary từ GitHub ───────────────────────
+    print(f"\n[2B] Inject resetprop — download magisk_arm64 binary...")
+    print(f"  URL: {MAGISK_BINARY_URL}")
 
     dl_out = cmd(
-        f"cd /data/local/tmp && "
-        f"curl -sL --max-time 120 '{KITSUNE_APK_URL}' -o kitsune.apk 2>&1; "
-        f"echo DLSIZE=$(wc -c < kitsune.apk 2>/dev/null)",
-        max_wait=150,
+        f"curl -sL --max-time 60 '{MAGISK_BINARY_URL}' -o {RESETPROP_INJECT} 2>&1; "
+        f"echo DLSIZE=$(wc -c < {RESETPROP_INJECT} 2>/dev/null)",
+        max_wait=90,
     )
     print(f"  Download: {dl_out.strip()[:200]}")
 
-    # Kiểm tra file đã download
     size_check = cmd(
-        "wc -c /data/local/tmp/kitsune.apk 2>/dev/null | awk '{print $1}'",
+        f"wc -c {RESETPROP_INJECT} 2>/dev/null | awk '{{print $1}}'",
         max_wait=15,
     )
-    apk_size = int(size_check.strip()) if size_check.strip().isdigit() else 0
-    print(f"  APK size trên device: {apk_size} bytes")
+    bin_size = int(size_check.strip()) if size_check.strip().isdigit() else 0
+    print(f"  Binary size trên device: {bin_size} bytes (expect ~394232)")
 
-    if apk_size < 1_000_000:
-        print("❌ APK download thất bại hoặc file quá nhỏ.")
-        print(f"   APK size: {apk_size} bytes (cần > 1MB)")
+    if bin_size < 100_000:
+        print("❌ Download thất bại hoặc file quá nhỏ.")
         print(f"   curl output: {dl_out.strip()[:300]}")
-        print(f"\n💡 GitHub có thể redirect — thử dùng uploadFileV3 với magisk_arm64 local.")
         client.instance.switch_root(pad_codes=[PAD], global_root=True, root_status=0)
         client.close()
         sys.exit(1)
 
-    # Extract libmagisk.so → rename resetprop
-    ext_out = cmd(
-        f"cd /data/local/tmp && "
-        f"unzip -o kitsune.apk 'lib/arm64-v8a/libmagisk.so' 2>&1; "
-        f"ls lib/arm64-v8a/libmagisk.so 2>/dev/null || echo EXTRACT_FAIL; "
-        f"mv lib/arm64-v8a/libmagisk.so {RESETPROP_INJECT} 2>&1; "
-        f"chmod 755 {RESETPROP_INJECT}; "
-        f"rm -rf /data/local/tmp/kitsune.apk /data/local/tmp/lib; "
-        f"ls -la {RESETPROP_INJECT}",
-        max_wait=30,
-    )
-    print(f"  Extract: {ext_out.strip()[:300]}")
-
-    if "EXTRACT_FAIL" in ext_out or "No such" in ext_out:
-        print("❌ Extract libmagisk.so thất bại.")
-        client.instance.switch_root(pad_codes=[PAD], global_root=True, root_status=0)
-        client.close()
-        sys.exit(1)
-
+    # chmod 755
+    cmd(f"chmod 755 {RESETPROP_INJECT}", max_wait=10)
     RP = RESETPROP_INJECT
     print(f"  ✓ resetprop inject tại {RP}")
 
