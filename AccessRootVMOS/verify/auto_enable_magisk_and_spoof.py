@@ -3,14 +3,14 @@
 Flow hoàn toàn tự động, không cần ToolBox UI:
   Step 0: Verify instance running (padStatus=10)
   Step 1: switchRoot → cấp root shell
-  Step 2: Kiểm tra Magisk đã bật chưa (ro.sys.cloud.magisk=1 + magiskd chạy)
-  Step 2B: Nếu chưa → sh /debug_ramdisk/magisk_env/install.sh → reboot → đợi online
+  Step 2: Kiểm tra Magisk đã bật chưa
+  Step 2B: Nếu chưa → kiểm tra /debug_ramdisk/magisk_env/install.sh
+  Step 2C: Nếu không có magisk_env/ → download từ GitHub Releases → setup thủ công
+  Step 2D: sh install.sh → reboot → đợi online
   Step 3: Spoof Pixel 10 Pro (2 batch)
   Step 4: Verify
 
-Cơ chế: /debug_ramdisk/magisk_env/ là ext4 partition bundled sẵn trong VMOS image
-→ install.sh KHÔNG cần download gì, chỉ unzip adb_magisk.zip + setprop ro.sys.cloud.magisk=1
-→ Sau reboot: magiskd active, /system/bin/resetprop có sẵn
+GitHub Releases: https://github.com/tmq9999/VMOS-SDK-New/releases/tag/v1.0.0-magisk
 """
 
 import os
@@ -157,10 +157,38 @@ else:
     print("\n[2B] Kitsune Magisk CHƯA bật — chạy install.sh...")
 
     if not has_install:
-        print("❌ Không tìm thấy /debug_ramdisk/magisk_env/install.sh!")
-        print("   Device này có thể không hỗ trợ Kitsune Magisk.")
-        client.close()
-        sys.exit(1)
+        # ── Step 2C: Download magisk_env từ GitHub Releases ──────────────────
+        print("\n[2C] Không có magisk_env/ → download từ GitHub Releases...")
+        BASE_URL = "https://github.com/tmq9999/VMOS-SDK-New/releases/download/v1.0.0-magisk"
+        FILES = [
+            "adb_magisk.zip", "magisk32", "magisk64", "magiskpolicy",
+            "install.sh", "uninstall.sh", "install_modules.sh",
+            "uninstall_modules.sh", "installed_files.txt",
+            "default_su_apps.txt", "sepolicy.rule",
+        ]
+        dl_out = cmd(f"""#!/system/bin/sh
+mkdir -p /debug_ramdisk/magisk_env
+cd /debug_ramdisk/magisk_env
+for f in {' '.join(FILES)}; do
+    curl -sL --max-time 60 -o "$f" "{BASE_URL}/$f" 2>/dev/null && echo "OK: $f" || echo "FAIL: $f"
+done
+chmod +x install.sh uninstall.sh install_modules.sh uninstall_modules.sh magisk32 magisk64 magiskpolicy
+ls -lah /debug_ramdisk/magisk_env/ | head -15
+""", max_wait=300)
+        print(f"  {dl_out.strip()[:800]}")
+
+        if "FAIL:" in dl_out and "OK:" not in dl_out:
+            print("❌ Download thất bại — device không ra được internet?")
+            client.close()
+            sys.exit(1)
+
+        # Verify install.sh có rồi
+        chk2 = cmd("test -f /debug_ramdisk/magisk_env/install.sh && echo HAS_INSTALL_SH || echo NO")
+        if "HAS_INSTALL_SH" not in chk2:
+            print("❌ install.sh vẫn không có sau download!")
+            client.close()
+            sys.exit(1)
+        print("  ✓ magisk_env/ setup xong từ GitHub")
 
     print("  Chạy install.sh (unzip + setprop ro.sys.cloud.magisk=1)...")
     install_out = cmd("sh /debug_ramdisk/magisk_env/install.sh 2>&1", max_wait=60)
