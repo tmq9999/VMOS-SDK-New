@@ -8,11 +8,19 @@ Ref: User-provided documentation (Flow Automation section).
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from vmos_sdk.models import VmosResponse
 
 _PREFIX = "/vcpcloud/api/padApi/automation"
+
+
+def _params_str(params: str | dict) -> str:
+    """Dispatch params must be a JSON string; serialize dicts automatically."""
+    if isinstance(params, str):
+        return params
+    return json.dumps(params, ensure_ascii=False, separators=(",", ":"))
 
 
 class AutomationAPI:
@@ -42,7 +50,7 @@ class AutomationAPI:
             body["platform"] = platform
         return self._http.post(f"{_PREFIX}/scripts/list", body)
 
-    def get_script(self, script_id: str) -> VmosResponse:
+    def get_script(self, script_id: int) -> VmosResponse:
         """Flow script details — fetch a single script by scriptId.
         POST /vcpcloud/api/padApi/automation/scripts/get
         """
@@ -54,25 +62,38 @@ class AutomationAPI:
 
     def batch_dispatch(
         self,
-        script_id: str,
-        pad_codes: list[str],
+        script_id: int,
+        pad_codes: list[str] | None = None,
         *,
-        params: dict | None = None,
-        per_device_params: list[dict] | None = None,
+        params: str | dict | None = None,
+        items: list[dict] | None = None,
         **kwargs,
     ) -> VmosResponse:
         """Batch dispatch flow task — dispatch a flow task to up to 200 instances.
-        Supports shared params or per-device params.
         POST /vcpcloud/api/padApi/automation/tasks/batch-dispatch
+
+        Mode A (shared params): pass pad_codes (+ optional params).
+        Mode B (per-device params): pass items=[{"padCode": ..., "params": ...}].
+        Exactly one of pad_codes / items must be provided.
+        params values are JSON strings; dicts are serialized automatically.
         """
-        body: dict[str, Any] = {
-            "scriptId": script_id,
-            "padCodes": pad_codes,
-        }
+        body: dict[str, Any] = {"scriptId": script_id}
+        if pad_codes is not None:
+            body["padCodes"] = pad_codes
         if params is not None:
-            body["params"] = params
-        if per_device_params is not None:
-            body["perDeviceParams"] = per_device_params
+            body["params"] = _params_str(params)
+        if items is not None:
+            body["items"] = [
+                {
+                    "padCode": item["padCode"],
+                    **(
+                        {"params": _params_str(item["params"])}
+                        if item.get("params") is not None
+                        else {}
+                    ),
+                }
+                for item in items
+            ]
         body.update(kwargs)
         return self._http.post(f"{_PREFIX}/tasks/batch-dispatch", body)
 
@@ -97,7 +118,7 @@ class AutomationAPI:
         body.update(kwargs)
         return self._http.post(f"{_PREFIX}/tasks/list", body)
 
-    def get_task(self, task_id: str) -> VmosResponse:
+    def get_task(self, task_id: int) -> VmosResponse:
         """Flow task details — fetch a single task by taskId.
         POST /vcpcloud/api/padApi/automation/tasks/get
         """
@@ -105,7 +126,7 @@ class AutomationAPI:
             f"{_PREFIX}/tasks/get", {"taskId": task_id}
         )
 
-    def get_task_logs(self, task_id: str) -> VmosResponse:
+    def get_task_logs(self, task_id: int) -> VmosResponse:
         """Flow task logs — step-level execution logs of a task.
         POST /vcpcloud/api/padApi/automation/tasks/logs
         """
@@ -113,7 +134,7 @@ class AutomationAPI:
             f"{_PREFIX}/tasks/logs", {"taskId": task_id}
         )
 
-    def cancel_task(self, task_id: str) -> VmosResponse:
+    def cancel_task(self, task_id: int) -> VmosResponse:
         """Cancel flow task — cancel a pending or running flow task.
         POST /vcpcloud/api/padApi/automation/tasks/cancel
         """
@@ -135,43 +156,69 @@ class AutomationAPI:
 
     def create_scheduled_task(
         self,
-        script_id: str,
+        task_name: str,
+        script_id: int,
         pad_codes: list[str],
         *,
-        task_name: str | None = None,
-        cron: str | None = None,
-        params: dict | None = None,
+        cron_expr: str | None = None,
+        one_shot: bool = False,
+        params: str | dict | None = None,
+        enabled: bool = True,
         **kwargs,
     ) -> VmosResponse:
         """Create scheduled task — can target multiple instances
-        (one record per instance); recurring or one-shot.
+        (one record per instance); recurring (cronExpr, 6 fields) or one-shot.
         POST /vcpcloud/api/padApi/automation/scheduled-tasks/create
         """
         body: dict[str, Any] = {
+            "taskName": task_name,
             "scriptId": script_id,
             "padCodes": pad_codes,
+            "oneShot": one_shot,
+            "enabled": enabled,
         }
-        if task_name is not None:
-            body["taskName"] = task_name
-        if cron is not None:
-            body["cron"] = cron
+        if cron_expr is not None:
+            body["cronExpr"] = cron_expr
         if params is not None:
-            body["params"] = params
+            body["params"] = _params_str(params)
         body.update(kwargs)
         return self._http.post(f"{_PREFIX}/scheduled-tasks/create", body)
 
     def update_scheduled_task(
-        self, task_id: str, **kwargs
+        self,
+        task_id: int,
+        task_name: str,
+        script_id: int,
+        pad_code: str,
+        *,
+        cron_expr: str | None = None,
+        one_shot: bool | None = None,
+        params: str | dict | None = None,
+        enabled: bool | None = None,
+        **kwargs,
     ) -> VmosResponse:
         """Update scheduled task — update a single scheduled task (single device).
         POST /vcpcloud/api/padApi/automation/scheduled-tasks/update
         """
-        body: dict[str, Any] = {"taskId": task_id}
+        body: dict[str, Any] = {
+            "taskId": task_id,
+            "taskName": task_name,
+            "scriptId": script_id,
+            "padCode": pad_code,
+        }
+        if cron_expr is not None:
+            body["cronExpr"] = cron_expr
+        if one_shot is not None:
+            body["oneShot"] = one_shot
+        if params is not None:
+            body["params"] = _params_str(params)
+        if enabled is not None:
+            body["enabled"] = enabled
         body.update(kwargs)
         return self._http.post(f"{_PREFIX}/scheduled-tasks/update", body)
 
     def toggle_scheduled_task(
-        self, task_id: str, enabled: bool
+        self, task_id: int, enabled: bool
     ) -> VmosResponse:
         """Toggle scheduled task — enable / disable a scheduled task.
         POST /vcpcloud/api/padApi/automation/scheduled-tasks/toggle
@@ -181,7 +228,7 @@ class AutomationAPI:
             {"taskId": task_id, "enabled": enabled},
         )
 
-    def delete_scheduled_task(self, task_id: str) -> VmosResponse:
+    def delete_scheduled_task(self, task_id: int) -> VmosResponse:
         """Delete scheduled task.
         POST /vcpcloud/api/padApi/automation/scheduled-tasks/delete
         """

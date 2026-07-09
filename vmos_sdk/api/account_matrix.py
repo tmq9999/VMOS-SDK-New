@@ -34,16 +34,16 @@ class AccountMatrixAPI:
         page: int = 1,
         size: int = 20,
         platform: str | None = None,
-        group_id: str | None = None,
-        status: int | None = None,
+        group_id: int | None = None,
+        status: str | None = None,
         keyword: str | None = None,
-        bind_status: int | None = None,
-        sort_field: str | None = None,
-        sort_order: str | None = None,
+        device_bound: bool | None = None,
+        sort_by: str | None = None,
+        sort_dir: str | None = None,
         **kwargs,
     ) -> VmosResponse:
         """Account list — paginate accounts with filtering & sorting.
-        Supports platform / group / status / keyword / bind-status filtering.
+        status: inactive / active / login_failed; sort_dir: asc / desc.
         POST /vcpcloud/api/padApi/automation/accounts/list
         """
         body: dict[str, Any] = {"page": page, "size": size}
@@ -55,16 +55,16 @@ class AccountMatrixAPI:
             body["status"] = status
         if keyword is not None:
             body["keyword"] = keyword
-        if bind_status is not None:
-            body["bindStatus"] = bind_status
-        if sort_field is not None:
-            body["sortField"] = sort_field
-        if sort_order is not None:
-            body["sortOrder"] = sort_order
+        if device_bound is not None:
+            body["deviceBound"] = device_bound
+        if sort_by is not None:
+            body["sortBy"] = sort_by
+        if sort_dir is not None:
+            body["sortDir"] = sort_dir
         body.update(kwargs)
         return self._http.post(f"{_PREFIX}/list", body)
 
-    def get_account(self, account_id: str) -> VmosResponse:
+    def get_account(self, account_id: int) -> VmosResponse:
         """Account details — fetch a single account by accountId.
         POST /vcpcloud/api/padApi/automation/accounts/get
         """
@@ -72,7 +72,7 @@ class AccountMatrixAPI:
             f"{_PREFIX}/get", {"accountId": account_id}
         )
 
-    def get_snapshots(self, account_id: str) -> VmosResponse:
+    def get_snapshots(self, account_id: int) -> VmosResponse:
         """Account data snapshots — historical snapshots by accountId
         (followers / following / works / likes time series).
         POST /vcpcloud/api/padApi/automation/accounts/snapshots
@@ -83,7 +83,7 @@ class AccountMatrixAPI:
 
     def get_works(
         self,
-        account_id: str,
+        account_id: int,
         *,
         page: int = 1,
         size: int = 20,
@@ -101,7 +101,7 @@ class AccountMatrixAPI:
         return self._http.post(f"{_PREFIX}/works", body)
 
     def get_work_snapshots(
-        self, account_id: str, work_id: str
+        self, account_id: int, work_id: int
     ) -> VmosResponse:
         """Account work data snapshots — single work's metric time series.
         POST /vcpcloud/api/padApi/automation/accounts/work-snapshots
@@ -123,51 +123,66 @@ class AccountMatrixAPI:
 
     def batch_trigger(
         self,
-        script_id: str,
-        account_ids: list[str],
+        script_id: int,
+        account_ids: list[int],
         *,
-        params: dict | None = None,
+        task_name: str | None = None,
+        shared_options: list[dict] | None = None,
+        per_account_options: dict[str, list[dict]] | None = None,
         **kwargs,
     ) -> VmosResponse:
         """Batch trigger account operation — dispatch a template to run
         immediately on multiple accounts. Target instances derived from
         bound instances, credentials injected server-side.
+        Option item: {"key": ..., "value": ...} or
+        {"key": ..., "fromCredential": "username|password|twofa_secret|email|email_password"}.
         POST /vcpcloud/api/padApi/automation/accounts/operations/batch
         """
         body: dict[str, Any] = {
             "scriptId": script_id,
             "accountIds": account_ids,
         }
-        if params is not None:
-            body["params"] = params
+        if task_name is not None:
+            body["taskName"] = task_name
+        if shared_options is not None:
+            body["sharedOptions"] = shared_options
+        if per_account_options is not None:
+            body["perAccountOptions"] = per_account_options
         body.update(kwargs)
         return self._http.post(f"{_PREFIX}/operations/batch", body)
 
     def batch_scheduled_tasks(
         self,
-        script_id: str,
-        account_ids: list[str],
+        script_id: int,
+        account_ids: list[int],
+        cron_expr: str,
         *,
-        cron: str | None = None,
+        one_shot: bool = False,
+        enabled: bool = True,
         task_name: str | None = None,
-        params: dict | None = None,
+        shared_options: list[dict] | None = None,
+        per_account_options: dict[str, list[dict]] | None = None,
         **kwargs,
     ) -> VmosResponse:
         """Account batch scheduled tasks — batch-create scheduled tasks
-        for multiple accounts (one record each). Credentials injected
-        per account at fire time.
+        for multiple accounts (one record each), fired on a Cron schedule
+        (6 fields, includes seconds). Credentials injected per account at
+        fire time.
         POST /vcpcloud/api/padApi/automation/accounts/scheduled-tasks/batch
         """
         body: dict[str, Any] = {
             "scriptId": script_id,
             "accountIds": account_ids,
+            "cronExpr": cron_expr,
+            "oneShot": one_shot,
+            "enabled": enabled,
         }
-        if cron is not None:
-            body["cron"] = cron
         if task_name is not None:
             body["taskName"] = task_name
-        if params is not None:
-            body["params"] = params
+        if shared_options is not None:
+            body["sharedOptions"] = shared_options
+        if per_account_options is not None:
+            body["perAccountOptions"] = per_account_options
         body.update(kwargs)
         return self._http.post(
             f"{_PREFIX}/scheduled-tasks/batch", body
@@ -177,41 +192,62 @@ class AccountMatrixAPI:
 
     def create_account(
         self,
-        handle: str,
         platform: str,
+        username: str,
+        password: str,
         *,
-        credentials: dict | None = None,
-        group_id: str | None = None,
+        handle: str | None = None,
+        twofa_secret: str | None = None,
+        email: str | None = None,
+        email_password: str | None = None,
+        group_id: int | None = None,
+        country: str | None = None,
+        note: str | None = None,
+        tags: str | None = None,
         **kwargs,
     ) -> VmosResponse:
-        """Create account — with credentials (AES-GCM encrypted at rest).
-        Handle is unique per platform.
+        """Create account — credentials are AES-GCM encrypted at rest.
+        Handle is unique per platform (may be empty).
         POST /vcpcloud/api/padApi/automation/accounts/create
         """
         body: dict[str, Any] = {
-            "handle": handle,
             "platform": platform,
+            "username": username,
+            "password": password,
         }
-        if credentials is not None:
-            body["credentials"] = credentials
+        if handle is not None:
+            body["handle"] = handle
+        if twofa_secret is not None:
+            body["twofaSecret"] = twofa_secret
+        if email is not None:
+            body["email"] = email
+        if email_password is not None:
+            body["emailPassword"] = email_password
         if group_id is not None:
             body["groupId"] = group_id
+        if country is not None:
+            body["country"] = country
+        if note is not None:
+            body["note"] = note
+        if tags is not None:
+            body["tags"] = tags
         body.update(kwargs)
         return self._http.post(f"{_PREFIX}/create", body)
 
     def bind_instance(
-        self, account_id: str, pad_code: str
+        self, account_id: int, pad_code: str, *, force: bool = False
     ) -> VmosResponse:
         """Bind instance — bind an account to an instance (padCode).
-        One active account per instance+platform, force to rebind.
+        One active account per instance+platform; force=True rebinds on
+        conflict (409 otherwise).
         POST /vcpcloud/api/padApi/automation/accounts/bind
         """
         return self._http.post(
             f"{_PREFIX}/bind",
-            {"accountId": account_id, "padCode": pad_code},
+            {"accountId": account_id, "padCode": pad_code, "force": force},
         )
 
-    def unbind_instance(self, account_id: str) -> VmosResponse:
+    def unbind_instance(self, account_id: int) -> VmosResponse:
         """Unbind instance — unbind the account from its instance.
         POST /vcpcloud/api/padApi/automation/accounts/unbind
         """
@@ -219,7 +255,7 @@ class AccountMatrixAPI:
             f"{_PREFIX}/unbind", {"accountId": account_id}
         )
 
-    def delete_account(self, account_id: str) -> VmosResponse:
+    def delete_account(self, account_id: int) -> VmosResponse:
         """Delete account — soft-delete (credentials cleared, recoverable by admin).
         POST /vcpcloud/api/padApi/automation/accounts/delete
         """
@@ -228,7 +264,7 @@ class AccountMatrixAPI:
         )
 
     def move_group(
-        self, account_id: str, group_id: str | None = None
+        self, account_id: int, group_id: int | None = None
     ) -> VmosResponse:
         """Move account group — pass None for groupId to ungroup.
         POST /vcpcloud/api/padApi/automation/accounts/group

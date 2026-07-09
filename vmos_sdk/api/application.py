@@ -19,6 +19,14 @@ class ApplicationAPI:
     def __init__(self, http) -> None:
         self._http = http
 
+    def install(self, apps: list[dict]) -> VmosResponse:
+        """Install one or more apps on one or more instances (async).
+        Each app item: {"appId": int, "padCodes": [str], "appName"?: str,
+        "pkgName"?: str, "isGrantAllPerm"?: bool}.
+        POST /vcpcloud/api/padApi/installApp
+        """
+        return self._http.post(f"{_PREFIX}/installApp", {"apps": apps})
+
     def uninstall(
         self, pad_code_list: list[str], apk_package_list: list[str]
     ) -> VmosResponse:
