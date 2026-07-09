@@ -1012,3 +1012,140 @@ class InstanceAPI:
         return self._http.post(
             "/vcpcloud/open/network/proxy/info", {"padCodes": pad_codes}
         )
+
+    # ========== Activation ==========
+
+    def activate_by_code(
+        self, active_code_list: list[str], *, country_code: str | None = None
+    ) -> VmosResponse:
+        """Activate cloud phones with activation codes (async, returns batchId).
+        POST /vcpcloud/api/padApi/activateByCode
+        """
+        body: dict[str, Any] = {"activeCodeList": active_code_list}
+        if country_code is not None:
+            body["countryCode"] = country_code
+        return self._http.post(f"{_PREFIX}/activateByCode", body)
+
+    def query_activation_batch(self, batch_id: str) -> VmosResponse:
+        """Query batch activation progress by batchId from activate_by_code.
+        POST /vcpcloud/api/padApi/queryActivationBatch
+        """
+        return self._http.post(
+            f"{_PREFIX}/queryActivationBatch", {"batchId": batch_id}
+        )
+
+    # ========== Auto-Renewal & Naming & Authorization ==========
+
+    def open_auto_renew(self, pad_code: str) -> VmosResponse:
+        """Enable auto-renewal for a single cloud phone.
+        POST /vcpcloud/api/padApi/openAutoRenew
+        """
+        return self._http.post(f"{_PREFIX}/openAutoRenew", {"padCode": pad_code})
+
+    def close_auto_renew(self, pad_code: str) -> VmosResponse:
+        """Disable auto-renewal for a single cloud phone.
+        POST /vcpcloud/api/padApi/closeAutoRenew
+        """
+        return self._http.post(f"{_PREFIX}/closeAutoRenew", {"padCode": pad_code})
+
+    def update_pad_name(self, pad_code: str, pad_name: str) -> VmosResponse:
+        """Rename a single cloud phone.
+        POST /vcpcloud/api/padApi/updatePadName
+        """
+        return self._http.post(
+            f"{_PREFIX}/updatePadName",
+            {"padCode": pad_code, "padName": pad_name},
+        )
+
+    def authorize_pad(
+        self,
+        pad_code: str,
+        authorized_account: str,
+        *,
+        minutes: int | None = None,
+        equi_authorize: bool | None = None,
+        permission: str | None = None,
+    ) -> VmosResponse:
+        """Temporarily grant a cloud phone to another account.
+        minutes is required when equi_authorize is False; permission is a
+        comma-separated allowed-operation list (empty means all).
+        POST /vcpcloud/api/padApi/authorizePad
+        """
+        body: dict[str, Any] = {
+            "padCode": pad_code,
+            "authorizedAccount": authorized_account,
+        }
+        if minutes is not None:
+            body["minutes"] = minutes
+        if equi_authorize is not None:
+            body["equiAuthorize"] = equi_authorize
+        if permission is not None:
+            body["permission"] = permission
+        return self._http.post(f"{_PREFIX}/authorizePad", body)
+
+    def query_pad_id_change_records(
+        self, *, query_date: str | None = None
+    ) -> VmosResponse:
+        """Query padCode change records (yyyy-MM-dd, Asia/Shanghai);
+        omitted query_date returns the last 3 calendar days.
+        POST /vcpcloud/api/padApi/queryPadIdChangeRecords
+        """
+        body: dict[str, Any] = {}
+        if query_date is not None:
+            body["queryDate"] = query_date
+        return self._http.post(f"{_PREFIX}/queryPadIdChangeRecords", body)
+
+    def generate_preview(
+        self,
+        pad_codes: list[str],
+        rotation: int = 0,
+        *,
+        broadcast: bool | None = None,
+    ) -> VmosResponse:
+        """Generate preview image for specified instances.
+        rotation: 0-default, 1-rotate to portrait.
+        POST /vcpcloud/api/padApi/generatePreview
+        """
+        body: dict[str, Any] = {"padCodes": pad_codes, "rotation": rotation}
+        if broadcast is not None:
+            body["broadcast"] = broadcast
+        return self._http.post(f"{_PREFIX}/generatePreview", body)
+
+    # ========== Cloud-Disk Backups ==========
+
+    def list_pad_backup_ids(self) -> VmosResponse:
+        """List all available cloud-disk backup IDs owned by the caller.
+        POST /vcpcloud/api/padApi/listPadBackupIds
+        """
+        return self._http.post(f"{_PREFIX}/listPadBackupIds", {})
+
+    def add_backup(self, pad_codes: list[str]) -> VmosResponse:
+        """Batch create cloud-disk backups (async; max 50 pads per call).
+        POST /vcpcloud/api/padApi/addBackup
+        """
+        return self._http.post(
+            f"{_PREFIX}/addBackup",
+            {"vcPadBackupList": [{"padCode": pc} for pc in pad_codes]},
+        )
+
+    def clone_pad_backup(
+        self, backup_ids: list[str], pad_codes: list[str]
+    ) -> VmosResponse:
+        """Batch clone cloud-disk backups onto multiple cloud phones (async).
+        POST /vcpcloud/api/padApi/clonePadBackup
+        """
+        return self._http.post(
+            f"{_PREFIX}/clonePadBackup",
+            {
+                "vcPadBackupList": [{"backupId": b} for b in backup_ids],
+                "pads": [{"padCode": pc} for pc in pad_codes],
+            },
+        )
+
+    def query_backup_batch(self, batch_id: str) -> VmosResponse:
+        """Query backup progress by batchId from add_backup.
+        POST /vcpcloud/api/padApi/queryBackupBatch
+        """
+        return self._http.post(
+            f"{_PREFIX}/queryBackupBatch", {"batchId": batch_id}
+        )

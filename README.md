@@ -583,40 +583,50 @@ Scripts được tạo bằng VMOS Cloud console flow editor.
 result = client.automation.list_scripts(page=1, size=20)
 
 # Chi tiết script
-result = client.automation.get_script(script_id="script123")
+result = client.automation.get_script(script_id=1024)
 
 # Batch dispatch flow task (tối đa 200 instances)
+# Mode A — shared params (JSON string hoặc dict, dict sẽ tự serialize)
 result = client.automation.batch_dispatch(
-    script_id="script123",
+    script_id=1024,
     pad_codes=["AC22030022693", "AC22030022694"],
-    params={"key": "value"},
+    params={"keyword": "summer sale"},
+)
+
+# Mode B — per-device params
+result = client.automation.batch_dispatch(
+    script_id=1024,
+    items=[
+        {"padCode": "AC22030022693", "params": {"account": "a@x.com"}},
+        {"padCode": "AC22030022694", "params": {"account": "b@x.com"}},
+    ],
 )
 
 # Danh sách tasks
 result = client.automation.list_tasks(page=1, size=20)
 
 # Chi tiết task
-result = client.automation.get_task(task_id="task123")
+result = client.automation.get_task(task_id=30215)
 
 # Logs (step-level)
-result = client.automation.get_task_logs(task_id="task123")
+result = client.automation.get_task_logs(task_id=30215)
 
 # Cancel task
-result = client.automation.cancel_task(task_id="task123")
+result = client.automation.cancel_task(task_id=30215)
 
-# Tạo scheduled task (recurring hoặc one-shot)
+# Tạo scheduled task (recurring hoặc one-shot; cron 6 trường, có giây)
 result = client.automation.create_scheduled_task(
-    script_id="script123",
-    pad_codes=["AC22030022693"],
     task_name="Daily Task",
-    cron="0 8 * * *",  # 8:00 AM hàng ngày
+    script_id=1024,
+    pad_codes=["AC22030022693"],
+    cron_expr="0 0 8 * * *",  # 8:00 AM hàng ngày
 )
 
 # Toggle on/off
-result = client.automation.toggle_scheduled_task(task_id="task123", enabled=False)
+result = client.automation.toggle_scheduled_task(task_id=501, enabled=False)
 
 # Xóa scheduled task
-result = client.automation.delete_scheduled_task(task_id="task123")
+result = client.automation.delete_scheduled_task(task_id=501)
 ```
 
 ---
@@ -629,45 +639,50 @@ Credentials write-only (AES-GCM encrypted at rest), plaintext never readable via
 ```python
 # Danh sách accounts
 result = client.account_matrix.list_accounts(
-    page=1, size=20, platform="tiktok"
+    page=1, size=20, platform="tiktok", status="active", device_bound=True
 )
 
 # Chi tiết account
-result = client.account_matrix.get_account(account_id="acc123")
+result = client.account_matrix.get_account(account_id=22)
 
-# Tạo account
+# Tạo account (credentials mã hóa AES-GCM at rest)
 result = client.account_matrix.create_account(
-    handle="myaccount",
     platform="tiktok",
-    credentials={"username": "user", "password": "pass"},
+    username="user",
+    password="pass",
+    handle="myaccount",
 )
 
-# Bind instance
+# Bind instance (force=True để rebind khi conflict)
 result = client.account_matrix.bind_instance(
-    account_id="acc123", pad_code="AC22030022693"
+    account_id=22, pad_code="AC22030022693"
 )
 
 # Unbind instance
-result = client.account_matrix.unbind_instance(account_id="acc123")
+result = client.account_matrix.unbind_instance(account_id=22)
 
-# Batch trigger operation
+# Batch trigger operation (credentials inject qua fromCredential)
 result = client.account_matrix.batch_trigger(
-    script_id="script123",
-    account_ids=["acc123", "acc456"],
+    script_id=1024,
+    account_ids=[22, 17],
+    shared_options=[
+        {"key": "account", "fromCredential": "username"},
+        {"key": "password", "fromCredential": "password"},
+    ],
 )
 
 # Account data snapshots
-result = client.account_matrix.get_snapshots(account_id="acc123")
+result = client.account_matrix.get_snapshots(account_id=22)
 
 # Account works
-result = client.account_matrix.get_works(account_id="acc123")
+result = client.account_matrix.get_works(account_id=22)
 
 # Groups
 result = client.account_matrix.list_groups()
-result = client.account_matrix.move_group(account_id="acc123", group_id="grp456")
+result = client.account_matrix.move_group(account_id=22, group_id=12)
 
 # Delete account (soft-delete)
-result = client.account_matrix.delete_account(account_id="acc123")
+result = client.account_matrix.delete_account(account_id=22)
 ```
 
 ---
